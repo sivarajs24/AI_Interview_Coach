@@ -123,7 +123,7 @@ class InterviewController {
         });
 
         await this.recorder.initializeMedia();
-        this.recorder.connectSocket(this.config.socketNamespace);
+        this.recorder.connectSocket(this.config.socketUrl);
         this.recorder.startEmotionStream(this.sessionId);
     }
 

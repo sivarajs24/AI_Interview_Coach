@@ -1,13 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ title or "InterviewIQ" }}</title>
+    <title>{{ title|default:"InterviewIQ" }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}page-default{% endblock %}">
@@ -21,14 +22,14 @@
     <div class="bg-orb orb-3"></div>
 
     <header class="site-header glass">
-        <a class="brand" href="{{ url_for('home') }}">
-            <img src="{{ url_for('static', filename='assets/logo.svg') }}" alt="InterviewIQ logo" class="brand-logo" />
+        <a class="brand" href="{% url 'home' %}">
+            <img src="{% static 'assets/logo.svg' %}" alt="InterviewIQ logo" class="brand-logo" />
             <span class="brand-text">InterviewIQ</span>
         </a>
         <nav class="site-nav">
-            <a href="{{ url_for('home') }}#features" data-nav-link>Features</a>
-            <a href="{{ url_for('home') }}#how-it-works" data-nav-link>How It Works</a>
-            <a href="{{ url_for('interview_page') }}" class="nav-cta">Start Interview</a>
+            <a href="{% url 'home' %}#features" data-nav-link>Features</a>
+            <a href="{% url 'home' %}#how-it-works" data-nav-link>How It Works</a>
+            <a href="{% url 'interview_page' %}" class="nav-cta">Start Interview</a>
         </nav>
     </header>
 
@@ -57,7 +58,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         window.UI = {
             showToast(message, type = "info") {

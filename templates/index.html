@@ -11,7 +11,7 @@
             emotional signals, and delivery clarity in real time.
         </p>
         <div class="hero-actions">
-            <a href="{{ url_for('interview_page') }}" class="btn hero-cta">Launch Smart Mock Interview</a>
+            <a href="{% url 'interview_page' %}" class="btn hero-cta">Launch Smart Mock Interview</a>
             <a href="#how-it-works" class="btn secondary">See the Process</a>
         </div>
         <div class="hero-metrics">
@@ -94,7 +94,7 @@
             <h3>One Focused Session. One Complete Performance Story.</h3>
             <p>Practice in a realistic interview environment and leave with a high-signal report to sharpen your next attempt.</p>
         </div>
-        <a href="{{ url_for('interview_page') }}" class="btn">Start Your Session</a>
+        <a href="{% url 'interview_page' %}" class="btn">Start Your Session</a>
     </div>
 </section>
 
@@ -129,7 +129,7 @@
 <footer class="site-footer">
     <div class="badge-row">
         <span class="tech-badge">Flask</span>
-        <span class="tech-badge">Socket.IO</span>
+        <span class="tech-badge">Django Channels</span>
         <span class="tech-badge">Whisper</span>
         <span class="tech-badge">DeepFace</span>
         <span class="tech-badge">Transformers</span>

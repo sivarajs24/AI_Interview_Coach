@@ -50,28 +50,24 @@ class InterviewRecorder extends EventTarget {
     }
 
     /**
-     * Connect to backend socket namespace for live emotion updates.
-     * @param {string} namespace
+    * Connect to the Django Channels websocket for live emotion updates.
+    * @param {string} socketUrl
      */
-    connectSocket(namespace) {
-        this.socket = io(namespace, {
-            transports: ["websocket", "polling"],
+    connectSocket(socketUrl) {
+        this.socket = new WebSocket(socketUrl);
+
+        this.socket.addEventListener("message", (event) => {
+            const payload = JSON.parse(event.data);
+            if (payload.event === "socket_ready") {
+                this.dispatchEvent(new CustomEvent("socket-ready", { detail: payload }));
+            }
+            if (payload.event === "emotion_update") {
+                this.dispatchEvent(new CustomEvent("emotion-update", { detail: payload }));
+            }
         });
 
-        this.socket.on("socket_ready", (payload) => {
-            this.dispatchEvent(new CustomEvent("socket-ready", { detail: payload }));
-        });
-
-        this.socket.on("emotion_update", (payload) => {
-            this.dispatchEvent(new CustomEvent("emotion-update", { detail: payload }));
-        });
-
-        this.socket.on("connect_error", (error) => {
-            this.dispatchEvent(
-                new CustomEvent("socket-error", {
-                    detail: { error },
-                })
-            );
+        this.socket.addEventListener("error", (error) => {
+            this.dispatchEvent(new CustomEvent("socket-error", { detail: { error } }));
         });
     }
 
@@ -92,10 +88,13 @@ class InterviewRecorder extends EventTarget {
             if (!frame) {
                 return;
             }
-            this.socket.emit("emotion_frame", {
+            if (this.socket.readyState !== WebSocket.OPEN) {
+                return;
+            }
+            this.socket.send(JSON.stringify({
                 session_id: this.sessionId,
                 frame,
-            });
+            }));
         }, 2000);
     }
 
