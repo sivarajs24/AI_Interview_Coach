@@ -19,6 +19,21 @@
         </div>
     </div>
 
+    {% if report or summary_text %}
+    <section class="report-section glass">
+        <h2>Interview Summary</h2>
+        <p>{{ summary_text }}</p>
+        {% if report %}
+            <div class="score-row">
+                <strong>Overall Score:</strong> {{ report.overall_score|floatformat:1 }}
+                <strong>Confidence:</strong> {{ report.confidence_score|floatformat:1 }}
+                <strong>Sentiment:</strong> {{ report.sentiment_score|floatformat:1 }}
+                <strong>Stress:</strong> {{ report.stress_score|floatformat:1 }}
+            </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
     <div class="scores-grid">
         <article class="score-card glass">
             <h3>Confidence</h3>
@@ -60,6 +75,17 @@
         <h2>Per-Question Breakdown</h2>
         <div id="questionAccordion" class="accordion"></div>
     </section>
+
+    {% if suggestions %}
+    <section class="report-section glass">
+        <h2>Actionable Suggestions</h2>
+        <ul class="suggestions-list">
+            {% for suggestion in suggestions %}
+                <li>{{ suggestion }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
 
     <section class="report-section glass">
         <h2>Actionable Suggestions</h2>

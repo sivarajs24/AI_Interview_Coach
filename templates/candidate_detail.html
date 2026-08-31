@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section dashboard-section">
+    <div class="glass dashboard-card">
+        <div class="dashboard-header">
+            <div>
+                <p class="eyebrow">Candidate Profile</p>
+                <h1>{{ candidate.display_name }}</h1>
+            </div>
+            <div class="report-actions">
+                <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary">Edit Candidate</a>
+                <a href="{% url 'candidate_management' %}" class="btn">Back to Candidates</a>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="glass info-panel">
+                <h3>Overview</h3>
+                <p><strong>Target Role:</strong> {{ candidate.target_role|default:"Not specified" }}</p>
+                <p><strong>Email:</strong> {{ candidate.email|default:"Not provided" }}</p>
+                <p><strong>Sessions:</strong> {{ session_count }}</p>
+                <p><strong>Average Score:</strong> {{ average_score|floatformat:1 }} / 100</p>
+                {% if latest_report %}
+                    <p><strong>Latest Summary:</strong> {{ latest_report.summary|default:"Completed successfully." }}</p>
+                {% endif %}
+            </div>
+
+            <div class="glass info-panel">
+                <h3>Notes</h3>
+                <p>{{ candidate.notes|default:"No notes added yet." }}</p>
+            </div>
+        </div>
+
+        <div class="dashboard-card nested-card">
+            <div class="dashboard-header compact-header">
+                <div>
+                    <p class="eyebrow">Evaluation Timeline</p>
+                    <h2>Session History</h2>
+                </div>
+            </div>
+
+            {% if sessions %}
+                <div class="session-list">
+                    {% for session in sessions %}
+                        <article class="session-item glass">
+                            <div>
+                                <p class="session-label">Session</p>
+                                <h3>{{ session.created_at|date:"M d, Y" }}</h3>
+                            </div>
+                            <div>
+                                <p class="session-label">Role</p>
+                                <strong>{{ session.target_role }}</strong>
+                            </div>
+                            <div>
+                                <p class="session-label">Status</p>
+                                <span>{{ session.get_status_display }}</span>
+                            </div>
+                            <div>
+                                <p class="session-label">Score</p>
+                                {% if session.report_detail %}
+                                    <span>{{ session.report_detail.overall_score|floatformat:1 }}</span>
+                                {% else %}
+                                    <span>Pending</span>
+                                {% endif %}
+                            </div>
+                            <div class="report-actions compact-actions">
+                                <a href="{% url 'report_page' session.session_key %}" class="btn secondary">View Report</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h2>No interview sessions yet</h2>
+                    <p>Start an interview to build a history for this candidate.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

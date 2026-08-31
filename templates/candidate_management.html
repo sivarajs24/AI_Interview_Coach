@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section dashboard-section">
+    <div class="glass dashboard-card">
+        <div class="dashboard-header">
+            <div>
+                <p class="eyebrow">Talent Tracking</p>
+                <h1>Candidate Management</h1>
+            </div>
+            <div class="report-actions">
+                <a href="{% url 'candidate_add' %}" class="btn">Add Candidate</a>
+                <a href="{% url 'interview_page' %}" class="btn secondary">Add Interview</a>
+            </div>
+        </div>
+
+        {% if candidates %}
+            <div class="session-list">
+                {% for candidate in candidates %}
+                    <article class="session-item glass">
+                        <div>
+                            <p class="session-label">Candidate</p>
+                            <h3>{{ candidate.display_name }}</h3>
+                        </div>
+                        <div>
+                            <p class="session-label">Target Role</p>
+                            <strong>{{ candidate.target_role|default:"Not specified" }}</strong>
+                        </div>
+                        <div>
+                            <p class="session-label">Sessions</p>
+                            <span>{{ candidate.sessions.count }}</span>
+                        </div>
+                        <div>
+                            <p class="session-label">Last Updated</p>
+                            <span>{{ candidate.updated_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="report-actions compact-actions">
+                            <a href="{% url 'candidate_detail' candidate.id %}" class="btn secondary">View</a>
+                            <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary">Edit</a>
+                            <form method="post" action="{% url 'candidate_delete' candidate.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn danger">Delete</button>
+                            </form>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>No candidates yet</h2>
+                <p>Start an interview and your candidate profile will appear here.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

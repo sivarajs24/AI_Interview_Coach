@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section dashboard-section">
+    <div class="glass dashboard-card profile-card">
+        <div class="dashboard-header">
+            <div>
+                <p class="eyebrow">Account</p>
+                <h1>My Profile</h1>
+            </div>
+            <div class="report-actions">
+                <a href="{% url 'profile_edit' %}" class="btn secondary">Edit Profile</a>
+                <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-panel glass">
+                <p class="session-label">Username</p>
+                <h2>{{ user.username }}</h2>
+                <p class="session-label">Email</p>
+                <p>{{ user.email|default:"No email provided" }}</p>
+            </div>
+
+            <div class="profile-panel glass">
+                <p class="session-label">Interview Summary</p>
+                <div class="metric-row">
+                    <div>
+                        <strong>{{ session_count }}</strong>
+                        <span>Total Sessions</span>
+                    </div>
+                    <div>
+                        <strong>{{ completed_count }}</strong>
+                        <span>Completed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if latest_report %}
+            <div class="profile-panel glass score-panel">
+                <p class="session-label">Latest Report</p>
+                <h3>{{ latest_report.session.candidate.display_name }}</h3>
+                <div class="metrics-grid">
+                    <div>
+                        <strong>{{ latest_report.overall_score }}</strong>
+                        <span>Overall</span>
+                    </div>
+                    <div>
+                        <strong>{{ latest_report.confidence_score }}</strong>
+                        <span>Confidence</span>
+                    </div>
+                    <div>
+                        <strong>{{ latest_report.sentiment_score }}</strong>
+                        <span>Sentiment</span>
+                    </div>
+                    <div>
+                        <strong>{{ latest_report.stress_score }}</strong>
+                        <span>Stress</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

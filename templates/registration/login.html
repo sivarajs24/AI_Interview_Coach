@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section auth-section">
+    <div class="glass auth-card">
+        <h1>Login</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <p class="auth-link">
+            Need an account? <a href="{% url 'register' %}">Register</a>
+        </p>
+    </div>
+</section>
+{% endblock %}

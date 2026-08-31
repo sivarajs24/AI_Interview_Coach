@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section auth-section">
+    <div class="glass auth-card">
+        <h1>{% if candidate %}Edit Candidate{% else %}Add Candidate{% endif %}</h1>
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <p>
+                <label for="full_name">Full Name</label><br>
+                <input id="full_name" type="text" name="full_name" value="{{ candidate.full_name|default:'' }}" required>
+            </p>
+            <p>
+                <label for="target_role">Target Role</label><br>
+                <input id="target_role" type="text" name="target_role" value="{{ candidate.target_role|default:'' }}">
+            </p>
+            <p>
+                <label for="email">Email</label><br>
+                <input id="email" type="email" name="email" value="{{ candidate.email|default:'' }}">
+            </p>
+            <p>
+                <label for="notes">Notes</label><br>
+                <textarea id="notes" name="notes" rows="4">{{ candidate.notes|default:'' }}</textarea>
+            </p>
+            <button type="submit" class="btn">Save Candidate</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section dashboard-section">
+    <div class="glass dashboard-card">
+        <div class="dashboard-header">
+            <div>
+                <p class="eyebrow">Your Workspace</p>
+                <h1>Interview Dashboard</h1>
+            </div>
+            <a href="{% url 'interview_page' %}" class="btn">Start New Interview</a>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="profile-panel glass">
+                <p class="session-label">Average Score</p>
+                <h3>{{ average_score|floatformat:1 }}</h3>
+            </div>
+            <div class="profile-panel glass">
+                <p class="session-label">Completed</p>
+                <h3>{{ completed_sessions }}</h3>
+            </div>
+            <div class="profile-panel glass">
+                <p class="session-label">Candidates</p>
+                <h3>{{ total_candidates }}</h3>
+            </div>
+        </div>
+
+        {% if sessions %}
+            <div class="session-list">
+                {% for session in sessions %}
+                    <article class="session-item glass">
+                        <div>
+                            <p class="session-label">Candidate</p>
+                            <h3>{{ session.candidate.display_name }}</h3>
+                        </div>
+                        <div>
+                            <p class="session-label">Role</p>
+                            <strong>{{ session.target_role|default:"General" }}</strong>
+                        </div>
+                        <div>
+                            <p class="session-label">Score</p>
+                            <strong>
+                                {% if session.report_detail %}
+                                    {{ session.report_detail.overall_score|floatformat:1 }}
+                                {% else %}
+                                    Pending
+                                {% endif %}
+                            </strong>
+                        </div>
+                        <div>
+                            <p class="session-label">Status</p>
+                            <span>{{ session.get_status_display }}</span>
+                        </div>
+                        <div>
+                            <p class="session-label">Date</p>
+                            <span>{{ session.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <a href="{% url 'report_page' session.session_key %}" class="btn secondary">View Report</a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h2>No interviews yet</h2>
+                <p>Start your first session to generate your first performance report.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
