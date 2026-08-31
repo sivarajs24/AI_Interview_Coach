@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import gc
+import json
 import os
 import re
 import threading
 import time
+import urllib.parse
+import urllib.request
 from typing import Any, Dict, List, Optional
 
 import torch
@@ -27,6 +30,13 @@ class QwenInterviewLLM:
         low_vram_mb: Optional[int] = None,
         max_new_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
+        cloud_provider: Optional[str] = None,
+        cloud_providers: Optional[List[str]] = None,
+        cloud_api_key: Optional[str] = None,
+        cloud_model: Optional[str] = None,
+        ollama_base_url: Optional[str] = None,
+        ollama_model: Optional[str] = None,
+        backend: Optional[str] = None,
     ) -> None:
         """Initialize lazy-loading Qwen runtime settings from parameters or environment variables."""
         self.enabled = enabled if enabled is not None else self._env_bool("QWEN_ENABLED", True)
@@ -37,7 +47,7 @@ class QwenInterviewLLM:
         self.timeout_seconds = (
             max(2.0, timeout_seconds)
             if timeout_seconds is not None
-            else max(2.0, self._env_float("QWEN_TIMEOUT_SECONDS", 12.0))
+            else max(2.0, self._env_float("QWEN_TIMEOUT_SECONDS", 60.0))
         )
         self.low_vram_mb = (
             max(256, low_vram_mb)
@@ -55,11 +65,97 @@ class QwenInterviewLLM:
             else min(1.2, max(0.1, self._env_float("QWEN_TEMPERATURE", 0.7)))
         )
 
+        self.ollama_base_url = (ollama_base_url or os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")).rstrip("/")
+        parsed_model = self._normalize_model_name(ollama_model or os.getenv("OLLAMA_MODEL", "qwen3:4b"))
+        self.ollama_model = parsed_model
+        self.backend = (backend or os.getenv("LLM_BACKEND", "ollama")).lower()
+        if self.primary_model.startswith("ollama/"):
+            self.backend = "ollama"
+        if self.fallback_model.startswith("ollama/"):
+            self.backend = "ollama"
+        if self.backend == "ollama":
+            self.timeout_seconds = max(self.timeout_seconds, self._env_float("OLLAMA_TIMEOUT_SECONDS", 60.0))
+
+        self.cloud_provider = (cloud_provider or os.getenv("CLOUD_LLM_PROVIDER", "gemini") or "gemini").lower()
+        self.cloud_providers = self._resolve_cloud_provider_order(cloud_providers)
+        self.cloud_provider = self.cloud_providers[0]
+        self.cloud_api_key = cloud_api_key or self._resolve_cloud_api_key(self.cloud_provider)
+        self.cloud_model = cloud_model or os.getenv("CLOUD_LLM_MODEL", self._default_cloud_model(self.cloud_provider))
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self._tokenizer: Optional[Any] = None
         self._model: Optional[Any] = None
         self._active_model_name: Optional[str] = None
         self._lock = threading.RLock()
+
+    def _resolve_cloud_provider_order(self, explicit_providers: Optional[List[str]]) -> List[str]:
+        """Return the provider fallback order, preferring Gemini first and Groq second."""
+        env_value = os.getenv("CLOUD_LLM_PROVIDERS")
+        provider_names = explicit_providers or (
+            [part.strip().lower() for part in env_value.split(",") if part.strip()] if env_value else None
+        )
+
+        ordered = ["gemini", "groq", "openai", "openrouter"]
+        if provider_names:
+            selected = []
+            for provider in provider_names:
+                normalized = provider.strip().lower()
+                if normalized and normalized not in selected:
+                    selected.append(normalized)
+            for provider in ordered:
+                if provider not in selected:
+                    selected.append(provider)
+            return selected
+
+        default_provider = (self.cloud_provider or os.getenv("CLOUD_LLM_PROVIDER", "gemini") or "gemini").lower()
+        ordered = [default_provider] + [provider for provider in ["gemini", "groq", "openai", "openrouter"] if provider != default_provider]
+        return ordered
+
+    def _normalize_model_name(self, model_name: str) -> str:
+        """Normalize both raw and prefixed Ollama names into the model name expected by Ollama."""
+        if model_name.startswith("ollama/"):
+            return model_name.split("/", 1)[1]
+        return model_name.strip()
+
+    def _resolve_cloud_api_key(self, provider: str) -> Optional[str]:
+        """Resolve the API key for the selected cloud provider from the environment."""
+        key_env = {
+            "gemini": "GEMINI_API_KEY",
+            "groq": "GROQ_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
+        }.get(provider, "CLOUD_LLM_API_KEY")
+        return os.getenv(key_env) or os.getenv("CLOUD_LLM_API_KEY")
+
+    def _default_cloud_model(self, provider: str) -> str:
+        """Return a sensible free-tier default model for the chosen provider."""
+        defaults = {
+            "gemini": "gemini-2.0-flash",
+            "groq": "llama-3.1-8b-instant",
+            "openai": "gpt-4o-mini",
+            "openrouter": "meta-llama/llama-3.1-8b-instruct",
+        }
+        return defaults.get(provider, "gemini-2.0-flash")
+
+    def _provider_api_key(self, provider: str) -> Optional[str]:
+        """Get the configured API key for a specific provider."""
+        key_env = {
+            "gemini": "GEMINI_API_KEY",
+            "groq": "GROQ_API_KEY",
+            "openai": "OPENAI_API_KEY",
+            "openrouter": "OPENROUTER_API_KEY",
+        }.get(provider, "CLOUD_LLM_API_KEY")
+        return os.getenv(key_env) or os.getenv("CLOUD_LLM_API_KEY")
+
+    def _provider_model(self, provider: str) -> str:
+        """Return the configured model name for a provider."""
+        provider_model = {
+            "gemini": os.getenv("GEMINI_LLM_MODEL") or os.getenv("CLOUD_LLM_MODEL", "gemini-2.0-flash"),
+            "groq": os.getenv("GROQ_LLM_MODEL") or os.getenv("CLOUD_LLM_MODEL", "llama-3.1-8b-instant"),
+            "openai": os.getenv("OPENAI_LLM_MODEL") or os.getenv("CLOUD_LLM_MODEL", "gpt-4o-mini"),
+            "openrouter": os.getenv("OPENROUTER_LLM_MODEL") or os.getenv("CLOUD_LLM_MODEL", "meta-llama/llama-3.1-8b-instruct"),
+        }
+        return provider_model.get(provider, os.getenv("CLOUD_LLM_MODEL", self._default_cloud_model(provider)))
 
     def _env_bool(self, key: str, default: bool) -> bool:
         """Read a boolean-like environment variable with safe defaults."""
@@ -121,8 +217,43 @@ class QwenInterviewLLM:
         if self.device == "cuda":
             torch.cuda.empty_cache()
 
+    def _build_ollama_payload(self, prompt: str) -> Dict[str, Any]:
+        """Build the request payload for a local Ollama model."""
+        return {
+            "model": self.ollama_model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": self.temperature,
+                "num_predict": self.max_new_tokens,
+            },
+        }
+
+    def _call_ollama(self, prompt: str) -> str:
+        """Query the local Ollama server and return the generated text."""
+        url = f"{self.ollama_base_url}/api/generate"
+        payload = self._build_ollama_payload(prompt)
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            return str(data.get("response", "")).strip()
+        except Exception:
+            return ""
+
     def _load_model(self, model_name: str) -> None:
-        """Load a Qwen model and tokenizer into the current runtime device."""
+        """Load a Qwen model and tokenizer into the current runtime device, or use Ollama if configured."""
+        if self.backend == "ollama" or model_name.startswith("ollama/"):
+            self._model = object()
+            self._tokenizer = object()
+            self._active_model_name = self.ollama_model
+            return
+
         self._cleanup_model()
 
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
@@ -231,8 +362,97 @@ class QwenInterviewLLM:
 
         return parsed
 
+    def _build_cloud_payload(self, prompt: str, model_name: str) -> Dict[str, Any]:
+        """Build the request body for the selected cloud LLM provider."""
+        if self.cloud_provider == "gemini":
+            return {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": self.temperature,
+                    "maxOutputTokens": self.max_new_tokens,
+                },
+                "model": model_name,
+            }
+
+        return {
+            "model": model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": self.temperature,
+            "max_tokens": self.max_new_tokens,
+        }
+
+    def _parse_cloud_response(self, provider: str, payload: Dict[str, Any]) -> str:
+        """Extract text content from a cloud provider response payload."""
+        if provider == "gemini":
+            candidates = payload.get("candidates") or []
+            if not candidates:
+                return ""
+            parts = candidates[0].get("content", {}).get("parts") or []
+            if not parts:
+                return ""
+            return "".join(part.get("text", "") for part in parts if isinstance(part, dict))
+
+        choices = payload.get("choices") or []
+        if not choices:
+            return ""
+        message = choices[0].get("message") or {}
+        content = message.get("content") or ""
+        if isinstance(content, list):
+            return "".join(part.get("text", "") for part in content if isinstance(part, dict))
+        return str(content)
+
+    def _generate_cloud_once(self, prompt: str, provider: Optional[str] = None) -> str:
+        """Call a cloud LLM API as a fallback when local Qwen fails."""
+        provider_name = (provider or self.cloud_provider).lower()
+        api_key = self._provider_api_key(provider_name)
+        if not api_key:
+            return ""
+
+        model_name = self._provider_model(provider_name)
+        url = None
+        headers = {"Content-Type": "application/json"}
+
+        if provider_name == "gemini":
+            params = urllib.parse.urlencode({"key": api_key})
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?{params}"
+            body = self._build_cloud_payload(prompt, model_name)
+        elif provider_name == "groq":
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers["Authorization"] = f"Bearer {api_key}"
+            body = self._build_cloud_payload(prompt, model_name)
+        elif provider_name == "openai":
+            url = "https://api.openai.com/v1/chat/completions"
+            headers["Authorization"] = f"Bearer {api_key}"
+            body = self._build_cloud_payload(prompt, model_name)
+        elif provider_name == "openrouter":
+            url = "https://openrouter.ai/api/v1/chat/completions"
+            headers["Authorization"] = f"Bearer {api_key}"
+            headers["HTTP-Referer"] = "https://localhost"
+            headers["X-Title"] = "InterviewIQ"
+            body = self._build_cloud_payload(prompt, model_name)
+        else:
+            return ""
+
+        request = urllib.request.Request(
+            url,
+            data=json.dumps(body).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+                result = self._parse_cloud_response(provider_name, payload)
+                return result.strip()
+        except Exception:
+            return ""
+
     def _generate_once(self, prompt: str, retry_with_fallback: bool = False) -> str:
         """Run one generation call and fallback to the smaller model on timeout-like or OOM behavior."""
+        if self.backend == "ollama":
+            return self._call_ollama(prompt)
+
         if self._model is None or self._tokenizer is None:
             return ""
 
@@ -283,6 +503,29 @@ class QwenInterviewLLM:
         except Exception:
             return ""
 
+    def _cloud_rewrite_questions(self, prompt: str, expected_count: int) -> Optional[List[str]]:
+        """Attempt to rewrite questions across the configured cloud provider order."""
+        for provider_name in self.cloud_providers:
+            api_key = self._provider_api_key(provider_name)
+            if not api_key:
+                continue
+
+            generated_text = self._generate_cloud_once(prompt, provider=provider_name)
+            if not generated_text:
+                continue
+
+            rewritten = self._parse_numbered_questions(generated_text, expected_count)
+            if len(rewritten) != expected_count:
+                continue
+
+            self.cloud_provider = provider_name
+            self.cloud_api_key = api_key
+            self.cloud_model = self._provider_model(provider_name)
+            self._active_model_name = f"{self.cloud_provider}:{self.cloud_model}"
+            return rewritten
+
+        return None
+
     def rewrite_questions(
         self,
         base_questions: List[Dict[str, Any]],
@@ -294,22 +537,28 @@ class QwenInterviewLLM:
             return base_questions
 
         with self._lock:
-            if not self._ensure_model():
-                return base_questions
-
             prompt = self._build_rewrite_prompt(base_questions, candidate_name, target_role)
-            generated_text = self._generate_once(prompt)
-            rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
+            if not self._ensure_model():
+                cloud_rewritten = self._cloud_rewrite_questions(prompt, len(base_questions))
+                if cloud_rewritten is None:
+                    return base_questions
+                rewritten = cloud_rewritten
+            else:
+                generated_text = self._generate_once(prompt)
+                rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
 
-            if len(rewritten) != len(base_questions):
-                if self._active_model_name == self.primary_model and self._switch_to_fallback(
-                    "invalid output on primary"
-                ):
-                    generated_text = self._generate_once(prompt, retry_with_fallback=True)
-                    rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
+                if len(rewritten) != len(base_questions):
+                    if self._active_model_name == self.primary_model and self._switch_to_fallback(
+                        "invalid output on primary"
+                    ):
+                        generated_text = self._generate_once(prompt, retry_with_fallback=True)
+                        rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
 
-            if len(rewritten) != len(base_questions):
-                return base_questions
+                if len(rewritten) != len(base_questions):
+                    cloud_rewritten = self._cloud_rewrite_questions(prompt, len(base_questions))
+                    if cloud_rewritten is None:
+                        return base_questions
+                    rewritten = cloud_rewritten
 
             upgraded: List[Dict[str, Any]] = []
             for idx, base_item in enumerate(base_questions):

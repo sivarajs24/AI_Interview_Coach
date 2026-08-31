@@ -1,11 +1,6 @@
 """Core analysis and orchestration modules for InterviewIQ."""
 
-from .facial_analyzer import FacialAnalyzer
-from .interview_engine import InterviewEngine
-from .qwen_interviewer import QwenInterviewLLM
-from .report_generator import ReportGenerator
-from .sentiment_analyzer import SentimentAnalyzer
-from .whisper_transcriber import WhisperTranscriber
+from importlib import import_module
 
 __all__ = [
     "WhisperTranscriber",
@@ -15,3 +10,21 @@ __all__ = [
     "QwenInterviewLLM",
     "ReportGenerator",
 ]
+
+
+def __getattr__(name):
+    """Lazily import optional modules so package import does not require all heavy runtime dependencies."""
+    module_map = {
+        "WhisperTranscriber": ".whisper_transcriber",
+        "SentimentAnalyzer": ".sentiment_analyzer",
+        "FacialAnalyzer": ".facial_analyzer",
+        "InterviewEngine": ".interview_engine",
+        "QwenInterviewLLM": ".qwen_interviewer",
+        "ReportGenerator": ".report_generator",
+    }
+
+    if name not in module_map:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    module = import_module(module_map[name], __name__)
+    return getattr(module, name)
