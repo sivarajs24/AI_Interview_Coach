@@ -1,4 +1,4 @@
-"""Django HTTP views for InterviewIQ."""
+"""Django HTTP views for AI Interview Coach."""
 
 from __future__ import annotations
 
@@ -66,10 +66,10 @@ def _build_pdf(report_payload: Dict[str, Any], session_id: str) -> io.BytesIO:
     from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
     buffer = io.BytesIO()
-    document = SimpleDocTemplate(buffer, pagesize=letter, title="InterviewIQ Report")
+    document = SimpleDocTemplate(buffer, pagesize=letter, title="AI Interview Coach Report")
     styles = getSampleStyleSheet()
     story = [
-        Paragraph("InterviewIQ - Interview Report", styles["Title"]),
+        Paragraph("AI Interview Coach - Interview Report", styles["Title"]),
         Paragraph(f"Session ID: {session_id}", styles["Normal"]),
         Paragraph(f"Generated: {datetime.now(timezone.utc).isoformat()}", styles["Normal"]),
         Spacer(1, 12),
@@ -87,7 +87,7 @@ def _build_pdf(report_payload: Dict[str, Any], session_id: str) -> io.BytesIO:
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    return render(request, "index.html", {"title": "InterviewIQ | AI Interview Coach"})
+    return render(request, "index.html", {"title": "AI Interview Coach | AI Interview Coach"})
 
 
 @login_required
@@ -244,7 +244,7 @@ def candidate_delete_view(request: HttpRequest, candidate_id: str) -> HttpRespon
 
 @login_required
 def interview_page(request: HttpRequest) -> HttpResponse:
-    return render(request, "interview.html", {"title": "InterviewIQ | Interview Session"})
+    return render(request, "interview.html", {"title": "AI Interview Coach | Interview Session"})
 
 
 @login_required
@@ -260,7 +260,7 @@ def report_page(request: HttpRequest, session_id: str) -> HttpResponse:
         request,
         "report.html",
         {
-            "title": "InterviewIQ | Report",
+            "title": "AI Interview Coach | Report",
             "session_id": session_id,
             "report": report,
             "report_data": report_data,
@@ -447,5 +447,5 @@ def download_report_pdf(request: HttpRequest, session_id: str) -> HttpResponse:
     if report_payload is None:
         return _json_error("Session not found.", status_code=404, code="SESSION_NOT_FOUND")
     response = FileResponse(_build_pdf(report_payload, session_id), content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="InterviewIQ_Report_{session_id}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="AI Interview Coach_Report_{session_id}.pdf"'
     return response

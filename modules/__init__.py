@@ -1,4 +1,4 @@
-"""Core analysis and orchestration modules for InterviewIQ."""
+"""Core analysis and orchestration modules for AI Interview Coach."""
 
 from importlib import import_module
 

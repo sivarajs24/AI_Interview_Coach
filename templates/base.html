@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ title|default:"InterviewIQ" }}</title>
+    <title>{{ title|default:"AI Interview Coach" }}</title>
+    <meta name="description" content="AI Interview Coach — Practice interviews with AI-powered feedback, real-time emotion analysis, and detailed performance reports." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     {% block extra_head %}{% endblock %}
 </head>
@@ -15,27 +16,30 @@
     <a href="#mainContent" class="skip-link">Skip to main content</a>
     <div id="scrollProgress" class="scroll-progress" aria-hidden="true"></div>
 
-    <div class="bg-gradient" aria-hidden="true"></div>
+    <!-- Animated cyber grid -->
     <div class="bg-grid" aria-hidden="true"></div>
-    <div class="bg-orb orb-1"></div>
-    <div class="bg-orb orb-2"></div>
-    <div class="bg-orb orb-3"></div>
 
-    <header class="site-header glass">
+    <!-- Particle canvas (injected by script below) -->
+    <canvas id="cyberParticles" aria-hidden="true"></canvas>
+
+    <header class="site-header">
         <a class="brand" href="{% url 'home' %}">
-            <img src="{% static 'assets/logo.svg' %}" alt="InterviewIQ logo" class="brand-logo" />
-            <span class="brand-text">InterviewIQ</span>
+            <img src="{% static 'assets/logo.jpg' %}" alt="AI Interview Coach logo" class="brand-logo" />
+            <span class="brand-text">AI Interview Coach</span>
         </a>
         <nav class="site-nav">
             <a href="{% url 'home' %}#features" data-nav-link>Features</a>
-            <a href="{% url 'home' %}#how-it-works" data-nav-link>How It Works</a>
+            <a href="{% url 'home' %}#how-it-works" data-nav-link>How it works</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="{% url 'profile' %}">Profile</a>
                 <a href="{% url 'candidate_management' %}">Candidates</a>
                 <a href="{% url 'interview_page' %}" class="nav-cta">Start Interview</a>
-                <span class="nav-user">Hi, {{ user.username }}</span>
-                <a href="{% url 'logout' %}">Logout</a>
+                <span class="nav-user">{{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Logout</button>
+                </form>
             {% else %}
                 <a href="{% url 'interview_page' %}" class="nav-cta">Start Interview</a>
                 <a href="{% url 'login' %}">Login</a>
@@ -48,6 +52,7 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Loading overlay -->
     <div id="loadingOverlay" class="loading-overlay hidden" aria-live="polite" aria-busy="true">
         <div class="loading-card glass">
             <div class="spinner"></div>
@@ -56,13 +61,16 @@
         </div>
     </div>
 
+    <!-- Toast notifications -->
     <aside id="toastContainer" class="toast-container" aria-live="assertive" aria-atomic="true"></aside>
 
+    <!-- Permission modal -->
     <div id="permissionModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="permissionModalTitle">
         <div class="modal-content glass">
-            <h3 id="permissionModalTitle">Camera and Microphone Access Required</h3>
+            <p class="eyebrow">Access Required</p>
+            <h3 id="permissionModalTitle">Camera & Microphone Access</h3>
             <p>
-                InterviewIQ needs webcam and microphone permissions to run the interview.
+                AI Interview Coach needs webcam and microphone permissions to run the interview.
                 Please allow access in your browser settings, then refresh the page.
             </p>
             <button type="button" class="btn secondary" onclick="window.UI.hidePermissionModal()">Close</button>
@@ -70,6 +78,9 @@
     </div>
 
     <script>
+        /* -------------------------------------------------------
+           UI Utilities
+        ------------------------------------------------------- */
         window.UI = {
             showToast(message, type = "info") {
                 const toast = document.createElement("div");
@@ -96,23 +107,19 @@
             },
         };
 
+        /* -------------------------------------------------------
+           Scroll progress + active nav
+        ------------------------------------------------------- */
         (() => {
             const progressBar = document.getElementById("scrollProgress");
             const navLinks = Array.from(document.querySelectorAll("[data-nav-link]"));
             const sectionAnchors = navLinks
                 .map((link) => {
                     const href = link.getAttribute("href") || "";
-                    if (!href.includes("#")) {
-                        return null;
-                    }
-
+                    if (!href.includes("#")) return null;
                     const targetId = href.split("#")[1];
                     const target = targetId ? document.getElementById(targetId) : null;
-                    if (!target) {
-                        return null;
-                    }
-
-                    return { link, target };
+                    return target ? { link, target } : null;
                 })
                 .filter(Boolean);
 
@@ -123,30 +130,127 @@
             };
 
             const refreshActiveSection = () => {
-                const marker = window.scrollY + 140;
+                const marker = window.scrollY + 100;
                 let activeTarget = null;
-
                 sectionAnchors.forEach((item) => {
-                    if (item.target.offsetTop <= marker) {
-                        activeTarget = item;
-                    }
+                    if (item.target.offsetTop <= marker) activeTarget = item;
                 });
-
                 navLinks.forEach((link) => link.classList.remove("is-active"));
-                if (activeTarget) {
-                    activeTarget.link.classList.add("is-active");
-                }
+                if (activeTarget) activeTarget.link.classList.add("is-active");
             };
 
             const onScroll = () => {
                 refreshScrollProgress();
                 refreshActiveSection();
-                document.body.classList.toggle("is-scrolled", window.scrollY > 24);
+                document.body.classList.toggle("is-scrolled", window.scrollY > 10);
             };
 
             window.addEventListener("scroll", onScroll, { passive: true });
             window.addEventListener("resize", onScroll);
             onScroll();
+        })();
+
+        /* -------------------------------------------------------
+           Cyber Particle Canvas
+        ------------------------------------------------------- */
+        (() => {
+            const canvas = document.getElementById("cyberParticles");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+
+            let W, H, particles = [], animFrame;
+
+            function resize() {
+                W = canvas.width  = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+
+            const COLORS = ["#2563eb", "#7c3aed", "#0284c7", "#059669", "#db2777"];
+
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x     = Math.random() * W;
+                    this.y     = Math.random() * H;
+                    this.size  = Math.random() * 1.5 + 0.3;
+                    this.alpha = Math.random() * 0.5 + 0.1;
+                    this.speed = Math.random() * 0.3 + 0.05;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.vx    = Math.cos(this.angle) * this.speed;
+                    this.vy    = Math.sin(this.angle) * this.speed;
+                    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+                    this.life  = 0;
+                    this.maxLife = Math.random() * 300 + 200;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.life++;
+                    if (this.life > this.maxLife ||
+                        this.x < -10 || this.x > W + 10 ||
+                        this.y < -10 || this.y > H + 10) {
+                        this.reset();
+                    }
+                }
+                draw() {
+                    const fade = this.life < 30
+                        ? this.life / 30
+                        : this.life > this.maxLife - 30
+                            ? (this.maxLife - this.life) / 30
+                            : 1;
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha * fade;
+                    ctx.fillStyle = this.color;
+                    ctx.shadowColor = this.color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function init() {
+                resize();
+                const count = Math.min(Math.floor((W * H) / 12000), 120);
+                particles = Array.from({ length: count }, () => new Particle());
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                particles.forEach(p => { p.update(); p.draw(); });
+
+                // Draw faint connection lines
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 100) {
+                            ctx.save();
+                            ctx.globalAlpha = (1 - dist / 100) * 0.07;
+                            ctx.strokeStyle = "#00f5ff";
+                            ctx.lineWidth = 0.5;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    }
+                }
+
+                animFrame = requestAnimationFrame(draw);
+            }
+
+            init();
+            draw();
+
+            window.addEventListener("resize", () => {
+                cancelAnimationFrame(animFrame);
+                init();
+                draw();
+            });
         })();
     </script>
     {% block scripts %}{% endblock %}

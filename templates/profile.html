@@ -5,12 +5,12 @@
     <div class="glass dashboard-card profile-card">
         <div class="dashboard-header">
             <div>
-                <p class="eyebrow">Account</p>
+                <p class="eyebrow">// Account</p>
                 <h1>My Profile</h1>
             </div>
             <div class="report-actions">
-                <a href="{% url 'profile_edit' %}" class="btn secondary">Edit Profile</a>
-                <a href="{% url 'dashboard' %}" class="btn">Back to Dashboard</a>
+                <a href="{% url 'profile_edit' %}" class="btn secondary" id="editProfileBtn">Edit Profile</a>
+                <a href="{% url 'dashboard' %}" class="btn" id="backDashboardBtn">Dashboard</a>
             </div>
         </div>
 
@@ -19,12 +19,12 @@
                 <p class="session-label">Username</p>
                 <h2>{{ user.username }}</h2>
                 <p class="session-label">Email</p>
-                <p>{{ user.email|default:"No email provided" }}</p>
+                <p style="color:var(--text-secondary);margin-top:0.25rem;">{{ user.email|default:"No email provided" }}</p>
             </div>
 
             <div class="profile-panel glass">
                 <p class="session-label">Interview Summary</p>
-                <div class="metric-row">
+                <div class="metric-row" style="margin-top:0.75rem;">
                     <div>
                         <strong>{{ session_count }}</strong>
                         <span>Total Sessions</span>
@@ -38,28 +38,27 @@
         </div>
 
         {% if latest_report %}
-            <div class="profile-panel glass score-panel">
-                <p class="session-label">Latest Report</p>
-                <h3>{{ latest_report.session.candidate.display_name }}</h3>
-                <div class="metrics-grid">
-                    <div>
-                        <strong>{{ latest_report.overall_score }}</strong>
-                        <span>Overall</span>
-                    </div>
-                    <div>
-                        <strong>{{ latest_report.confidence_score }}</strong>
-                        <span>Confidence</span>
-                    </div>
-                    <div>
-                        <strong>{{ latest_report.sentiment_score }}</strong>
-                        <span>Sentiment</span>
-                    </div>
-                    <div>
-                        <strong>{{ latest_report.stress_score }}</strong>
-                        <span>Stress</span>
-                    </div>
+        <div class="profile-panel glass score-panel" style="margin-top:1.25rem;">
+            <p class="session-label">Latest Report — {{ latest_report.session.candidate.display_name }}</p>
+            <div class="metrics-grid" style="margin-top:0.75rem;">
+                <div>
+                    <strong>{{ latest_report.overall_score }}</strong>
+                    <span>Overall</span>
+                </div>
+                <div>
+                    <strong>{{ latest_report.confidence_score }}</strong>
+                    <span>Confidence</span>
+                </div>
+                <div>
+                    <strong style="color:var(--accent-green);text-shadow:0 0 10px rgba(16,255,176,0.4);">{{ latest_report.sentiment_score }}</strong>
+                    <span>Sentiment</span>
+                </div>
+                <div>
+                    <strong style="color:var(--danger);text-shadow:0 0 10px rgba(255,68,102,0.4);">{{ latest_report.stress_score }}</strong>
+                    <span>Stress</span>
                 </div>
             </div>
+        </div>
         {% endif %}
     </div>
 </section>

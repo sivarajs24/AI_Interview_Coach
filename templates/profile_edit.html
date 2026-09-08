@@ -1,24 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section auth-section">
-    <div class="glass auth-card">
-        <h1>Edit Profile</h1>
+<section class="auth-page">
+    <div class="glass form-card">
+        <p class="eyebrow">// Account</p>
+        <h1 class="form-title">Edit Profile</h1>
+        <p class="form-subtitle">Update your display name and email address.</p>
+
         {% if error %}
-            <p class="error-message">{{ error }}</p>
+            <div style="padding:0.85rem 1.1rem;background:var(--danger-bg);border:1px solid rgba(255,68,102,0.3);border-radius:var(--radius-md);margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--danger);">
+                ⚠ {{ error }}
+            </div>
         {% endif %}
+
         <form method="post">
             {% csrf_token %}
-            <p>
-                <label for="username">Username</label><br>
-                <input id="username" type="text" name="username" value="{{ user.username }}" required>
-            </p>
-            <p>
-                <label for="email">Email</label><br>
-                <input id="email" type="email" name="email" value="{{ user.email|default:'' }}">
-            </p>
-            <button type="submit" class="btn">Save Changes</button>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" name="username" value="{{ user.username }}" required placeholder="your_username">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input id="email" type="email" name="email" value="{{ user.email|default:'' }}" placeholder="you@example.com">
+            </div>
+            <button type="submit" class="btn" style="width:100%;" id="saveProfileBtn">Save Changes</button>
         </form>
+
+        <div class="form-footer-link">
+            <a href="{% url 'profile' %}">← Back to Profile</a>
+        </div>
     </div>
 </section>
 {% endblock %}

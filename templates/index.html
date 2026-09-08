@@ -1,30 +1,37 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- ═══════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════ -->
 <section class="hero section">
     <div class="hero-background"></div>
+
     <div class="hero-content glass reveal">
-        <p class="eyebrow">Multi-Modal AI Career Coaching</p>
-        <h1>InterviewIQ</h1>
+        <p class="eyebrow">// Multi-Modal AI Career Coaching</p>
+        <h1>Master Every<br>Interview.</h1>
         <p class="hero-tagline">
-            Build elite interview presence with one guided experience that analyzes your spoken answers,
-            emotional signals, and delivery clarity in real time.
+            AI Interview Coach analyzes your spoken answers, emotional signals, and delivery
+            clarity in real time — giving you data-driven coaching, not guesswork.
         </p>
         <div class="hero-actions">
-            <a href="{% url 'interview_page' %}" class="btn hero-cta">Launch Smart Mock Interview</a>
-            <a href="#how-it-works" class="btn secondary">See the Process</a>
+            <a href="{% url 'interview_page' %}" class="btn hero-cta" id="heroLaunchBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Launch Mock Interview
+            </a>
+            <a href="#how-it-works" class="btn secondary" id="heroLearnBtn">See the Process</a>
         </div>
         <div class="hero-metrics">
             <article>
-                <strong>10</strong>
-                <span>Question Adaptive Flow</span>
+                <strong id="counter1">0</strong>
+                <span>Questions / Session</span>
             </article>
             <article>
-                <strong>3</strong>
+                <strong id="counter2">0</strong>
                 <span>Signals per Response</span>
             </article>
             <article>
-                <strong>1</strong>
+                <strong id="counter3">0</strong>
                 <span>Unified Report Card</span>
             </article>
         </div>
@@ -43,7 +50,7 @@
                     <span>Clarity Index</span>
                 </article>
                 <article class="preview-card">
-                    <strong>Positive</strong>
+                    <strong>+</strong>
                     <span>Sentiment Trend</span>
                 </article>
                 <article class="preview-card">
@@ -52,73 +59,91 @@
                 </article>
             </div>
             <div class="preview-wave"></div>
+
+            <!-- Cyber status bar -->
+            <div style="margin-top:1rem; display:flex; align-items:center; gap:0.6rem; padding:0.75rem 1rem; background: rgba(0,245,255,0.04); border:1px solid rgba(0,245,255,0.1); border-radius:8px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-green);box-shadow:0 0 8px var(--accent-green);animation:pulse 1.5s infinite;flex-shrink:0;"></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-muted);letter-spacing:0.06em;">AI_ANALYSIS_ENGINE // READY</span>
+            </div>
         </div>
     </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════
+     FEATURES
+═══════════════════════════════════════════════ -->
 <section id="features" class="section features-section">
     <div class="section-header reveal">
-        <h2>Designed For Serious Interview Readiness</h2>
+        <p class="eyebrow">// Core Capabilities</p>
+        <h2>Designed For Serious<br>Interview Readiness</h2>
         <p>
-            InterviewIQ blends speech intelligence, sentiment analysis, and visual emotion cues into one training loop
+            AI Interview Coach blends speech intelligence, sentiment analysis, and visual emotion cues into one training loop
             so you can practice with data, not guesswork.
         </p>
     </div>
+
     <div class="feature-grid">
-        <article class="feature-card glass reveal">
+        <article class="feature-card glass reveal" id="featureTranscription">
             <div class="feature-icon">01</div>
             <h3>Precision Transcription</h3>
             <p>
-                Whisper captures every response with strong fidelity so your coaching is anchored to exact wording,
+                Whisper captures every response with high fidelity so your coaching is anchored to exact wording,
                 pacing, and thought structure.
             </p>
         </article>
-        <article class="feature-card glass reveal">
-            <div class="feature-icon">02</div>
+        <article class="feature-card glass reveal" id="featureEmotion" style="animation-delay:0.15s">
+            <div class="feature-icon" style="color:var(--accent-violet);text-shadow:0 0 20px var(--glow-violet)">02</div>
             <h3>Visual Emotion Tracking</h3>
             <p>
-                DeepFace and OpenCV monitor composure shifts and stress spikes over time, helping you train your on-camera presence.
+                DeepFace and OpenCV monitor composure shifts and stress spikes over time, helping you train
+                your on-camera presence.
             </p>
         </article>
-        <article class="feature-card glass reveal">
-            <div class="feature-icon">03</div>
+        <article class="feature-card glass reveal" id="featureCoaching" style="animation-delay:0.3s">
+            <div class="feature-icon" style="color:var(--accent-green);text-shadow:0 0 20px rgba(16,255,176,0.4)">03</div>
             <h3>Actionable Coaching Engine</h3>
             <p>
-                Sentiment scoring and interview logic turn raw signals into clear, practical recommendations you can apply immediately.
+                Sentiment scoring and interview logic turn raw signals into clear, practical recommendations
+                you can apply immediately.
             </p>
         </article>
     </div>
 
-    <div class="experience-strip glass reveal">
+    <div class="experience-strip glass reveal" id="ctaStrip">
         <div>
             <h3>One Focused Session. One Complete Performance Story.</h3>
-            <p>Practice in a realistic interview environment and leave with a high-signal report to sharpen your next attempt.</p>
+            <p>Practice in a realistic environment and leave with a high-signal report to sharpen your next attempt.</p>
         </div>
-        <a href="{% url 'interview_page' %}" class="btn">Start Your Session</a>
+        <a href="{% url 'interview_page' %}" class="btn" id="stripStartBtn">Start Your Session</a>
     </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════════ -->
 <section id="how-it-works" class="section steps-section">
     <div class="section-header reveal">
-        <h2>How the Training Flow Works</h2>
+        <p class="eyebrow">// Training Flow</p>
+        <h2>How AI Interview Coach Works</h2>
     </div>
+
     <div class="steps-grid">
-        <div class="step glass reveal">
+        <div class="step glass reveal" id="step1">
             <span>01</span>
             <h3>Start Session</h3>
             <p>Launch a guided 10-question sequence built from practical interview categories and coaching intent.</p>
         </div>
-        <div class="step glass reveal">
+        <div class="step glass reveal" id="step2">
             <span>02</span>
             <h3>Record Answers</h3>
-            <p>Respond naturally while webcam and microphone streams capture delivery quality and visible confidence cues.</p>
+            <p>Respond naturally while webcam and microphone streams capture delivery quality and confidence cues.</p>
         </div>
-        <div class="step glass reveal">
+        <div class="step glass reveal" id="step3">
             <span>03</span>
             <h3>Analyze Signals</h3>
             <p>Process transcript, sentiment, and emotion trends to quantify confidence, fluency, and stress profile.</p>
         </div>
-        <div class="step glass reveal">
+        <div class="step glass reveal" id="step4">
             <span>04</span>
             <h3>Review Report</h3>
             <p>Receive an interactive report with charts, per-question drill-down, and targeted improvement tactics.</p>
@@ -126,6 +151,9 @@
     </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════ -->
 <footer class="site-footer">
     <div class="badge-row">
         <span class="tech-badge">Django</span>
@@ -134,28 +162,27 @@
         <span class="tech-badge">DeepFace</span>
         <span class="tech-badge">Transformers</span>
         <span class="tech-badge">Chart.js</span>
+        <span class="tech-badge">OpenCV</span>
     </div>
-    <p>InterviewIQ • Professional AI Interview Coaching</p>
+    <p>AI Interview Coach &mdash; AI-Powered Interview Coaching &copy; 2026</p>
 </footer>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    /* Smooth anchor scroll */
     document.querySelectorAll('a[href^="#"]').forEach((link) => {
         link.addEventListener("click", (event) => {
             const targetId = link.getAttribute("href");
-            if (!targetId || targetId === "#") {
-                return;
-            }
+            if (!targetId || targetId === "#") return;
             const target = document.querySelector(targetId);
-            if (!target) {
-                return;
-            }
+            if (!target) return;
             event.preventDefault();
             target.scrollIntoView({ behavior: "smooth", block: "start" });
         });
     });
 
+    /* Intersection observer for reveal */
     const observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -164,9 +191,31 @@
                 }
             });
         },
-        { threshold: 0.2 }
+        { threshold: 0.15 }
     );
-
     document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+    /* Animated counters */
+    function animateCounter(el, target, duration = 1200) {
+        const start = performance.now();
+        function tick(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target);
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+
+    const heroObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+            animateCounter(document.getElementById("counter1"), 10);
+            animateCounter(document.getElementById("counter2"), 3);
+            animateCounter(document.getElementById("counter3"), 1);
+            heroObserver.disconnect();
+        }
+    }, { threshold: 0.4 });
+    const metricsEl = document.querySelector(".hero-metrics");
+    if (metricsEl) heroObserver.observe(metricsEl);
 </script>
 {% endblock %}

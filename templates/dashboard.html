@@ -1,71 +1,234 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — AI Interview Coach</title>
+    <meta name="description" content="Your AI Interview Coach dashboard — track sessions, scores, and candidates.">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Background layers -->
+    <div class="bg-grid" aria-hidden="true"></div>
+    <canvas id="cyberParticles" aria-hidden="true"></canvas>
 
-{% block content %}
-<section class="section dashboard-section">
-    <div class="glass dashboard-card">
-        <div class="dashboard-header">
-            <div>
-                <p class="eyebrow">Your Workspace</p>
-                <h1>Interview Dashboard</h1>
-            </div>
-            <a href="{% url 'interview_page' %}" class="btn">Start New Interview</a>
-        </div>
+    <!-- Scroll progress -->
+    <div id="scrollProgress" class="scroll-progress" aria-hidden="true"></div>
 
-        <div class="metrics-grid">
-            <div class="profile-panel glass">
-                <p class="session-label">Average Score</p>
-                <h3>{{ average_score|floatformat:1 }}</h3>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="{% url 'dashboard' %}" class="logo">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    AI Interview Coach
+                </a>
             </div>
-            <div class="profile-panel glass">
-                <p class="session-label">Completed</p>
-                <h3>{{ completed_sessions }}</h3>
-            </div>
-            <div class="profile-panel glass">
-                <p class="session-label">Candidates</p>
-                <h3>{{ total_candidates }}</h3>
-            </div>
-        </div>
 
-        {% if sessions %}
-            <div class="session-list">
-                {% for session in sessions %}
-                    <article class="session-item glass">
-                        <div>
-                            <p class="session-label">Candidate</p>
-                            <h3>{{ session.candidate.display_name }}</h3>
+            <nav class="nav-links">
+                <a href="{% url 'dashboard' %}" class="nav-item active" id="navDashboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="{% url 'interview_page' %}" class="nav-item" id="navPractice">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    Practice
+                </a>
+                <a href="{% url 'candidate_management' %}" class="nav-item" id="navCandidates">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Candidates
+                </a>
+                <a href="{% url 'profile' %}" class="nav-item" id="navProfile">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Profile
+                </a>
+
+                <div style="margin-top:auto;padding-top:2rem;border-top:1px solid var(--glass-border);">
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-item" id="navLogout" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;font:inherit;border:1px solid transparent;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main -->
+        <main class="main-content">
+            <header class="topbar">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;color:var(--text-muted);text-transform:uppercase;">
+                    // Command Center
+                </div>
+                <div class="user-profile">
+                    <span style="font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:0.875rem;color:var(--text-secondary);">{{ user.username }}</span>
+                    <div class="avatar" aria-label="User avatar">{{ user.username|make_list|first|upper }}</div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Welcome -->
+                <section class="welcome-section">
+                    <h1>Ready for your next<br>interview, {{ user.username }}?</h1>
+                    <p>Avg score: <strong style="color:var(--accent-cyan);font-family:'Orbitron',sans-serif;">{{ average_score|floatformat:1 }}</strong> &nbsp;·&nbsp; {{ completed_sessions }} completed sessions</p>
+                </section>
+
+                <!-- Quick Actions -->
+                <section class="quick-actions">
+                    <a href="{% url 'interview_page' %}" class="action-card" id="actionStartSession">
+                        <div class="action-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
                         </div>
                         <div>
-                            <p class="session-label">Role</p>
-                            <strong>{{ session.target_role|default:"General" }}</strong>
+                            <h3>Start Practice Session</h3>
+                            <p>Begin a new AI-driven mock interview tailored to your target role.</p>
+                        </div>
+                    </a>
+                    <a href="{% url 'candidate_management' %}" class="action-card" id="actionManageCandidates">
+                        <div class="action-icon" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.2);color:var(--accent-violet);">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
                         </div>
                         <div>
-                            <p class="session-label">Score</p>
-                            <strong>
-                                {% if session.report_detail %}
-                                    {{ session.report_detail.overall_score|floatformat:1 }}
-                                {% else %}
-                                    Pending
-                                {% endif %}
-                            </strong>
+                            <h3>Candidate Management</h3>
+                            <p>Manage your candidates and their profiles ({{ total_candidates }} total).</p>
                         </div>
-                        <div>
-                            <p class="session-label">Status</p>
-                            <span>{{ session.get_status_display }}</span>
-                        </div>
-                        <div>
-                            <p class="session-label">Date</p>
-                            <span>{{ session.created_at|date:"M d, Y" }}</span>
-                        </div>
-                        <a href="{% url 'report_page' session.session_key %}" class="btn secondary">View Report</a>
-                    </article>
-                {% endfor %}
+                    </a>
+                </section>
+
+                <!-- Recent Sessions -->
+                <section>
+                    <h2 class="section-header">Recent Sessions</h2>
+                    {% if sessions %}
+                    <div class="history-table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Candidate</th>
+                                    <th>Role</th>
+                                    <th>Date</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in sessions %}
+                                <tr>
+                                    <td style="color:var(--text-primary);font-weight:500;">{{ session.candidate.display_name }}</td>
+                                    <td>{{ session.target_role|default:"General" }}</td>
+                                    <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">{{ session.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if session.report_detail %}
+                                            <span style="font-family:'Orbitron',sans-serif;font-size:0.85rem;color:var(--accent-cyan);text-shadow:0 0 8px var(--glow-cyan);">{{ session.report_detail.overall_score|floatformat:1 }}</span>
+                                            <span style="color:var(--text-muted);font-size:0.75rem;">/100</span>
+                                        {% else %}
+                                            <span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.75rem;">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if session.get_status_display == 'Completed' %}
+                                            <span class="badge completed">{{ session.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge">{{ session.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'report_page' session.session_key %}">View Report →</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.5rem;display:block;">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <h3>No interviews yet</h3>
+                        <p>Start your first session to generate your first performance report.</p>
+                        <a href="{% url 'interview_page' %}" class="btn" id="emptyStartBtn">Start First Interview</a>
+                    </div>
+                    {% endif %}
+                </section>
             </div>
-        {% else %}
-            <div class="empty-state">
-                <h2>No interviews yet</h2>
-                <p>Start your first session to generate your first performance report.</p>
-            </div>
-        {% endif %}
+        </main>
     </div>
-</section>
-{% endblock %}
+
+    <script>
+        /* Particle canvas */
+        (() => {
+            const canvas = document.getElementById("cyberParticles");
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            let W, H, particles = [], animFrame;
+            function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+            const COLORS = ["#2563eb","#7c3aed","#0284c7","#059669","#db2777"];
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x = Math.random() * W; this.y = Math.random() * H;
+                    this.size = Math.random() * 1.2 + 0.3; this.alpha = Math.random() * 0.4 + 0.1;
+                    this.vx = (Math.random() - 0.5) * 0.3; this.vy = (Math.random() - 0.5) * 0.3;
+                    this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+                    this.life = 0; this.maxLife = Math.random() * 400 + 200;
+                }
+                update() {
+                    this.x += this.vx; this.y += this.vy; this.life++;
+                    if (this.life > this.maxLife) this.reset();
+                }
+                draw() {
+                    const fade = this.life < 30 ? this.life / 30 : this.life > this.maxLife - 30 ? (this.maxLife - this.life) / 30 : 1;
+                    ctx.save(); ctx.globalAlpha = this.alpha * fade;
+                    ctx.fillStyle = this.color; ctx.shadowColor = this.color; ctx.shadowBlur = 4;
+                    ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                }
+            }
+            function init() { resize(); const n = Math.min(80, Math.floor((W*H)/15000)); particles = Array.from({length:n},()=>new Particle()); }
+            function draw() { ctx.clearRect(0,0,W,H); particles.forEach(p=>{p.update();p.draw();}); animFrame = requestAnimationFrame(draw); }
+            init(); draw();
+            window.addEventListener("resize",()=>{cancelAnimationFrame(animFrame);init();draw();});
+        })();
+
+        /* Scroll progress */
+        (() => {
+            const bar = document.getElementById("scrollProgress");
+            window.addEventListener("scroll", () => {
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                bar.style.width = max > 0 ? `${Math.min(100,(window.scrollY/max)*100)}%` : "0%";
+            }, { passive: true });
+        })();
+    </script>
+</body>
+</html>

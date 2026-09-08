@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section auth-section">
-    <div class="glass auth-card">
-        <h1>Login</h1>
+<section class="auth-page">
+    <div class="glass form-card">
+        <p class="eyebrow">// Authentication</p>
+        <h1 class="form-title">Welcome Back</h1>
+        <p class="form-subtitle">Sign in to your AI Interview Coach account.</p>
+
+        {% if form.errors %}
+        <div style="padding:0.85rem 1.1rem;background:var(--danger-bg);border:1px solid rgba(255,68,102,0.3);border-radius:var(--radius-md);margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--danger);">
+            ⚠ Invalid username or password. Please try again.
+        </div>
+        {% endif %}
+
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn">Login</button>
+            <div style="text-align:right;margin-top:-0.5rem;margin-bottom:1rem;">
+                <a href="#" style="font-size:0.8rem;color:var(--accent-cyan);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;transition:text-shadow 0.25s;" class="neon-link">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn" style="width:100%;" id="loginBtn">Sign In →</button>
         </form>
-        <p class="auth-link">
-            Need an account? <a href="{% url 'register' %}">Register</a>
-        </p>
+
+        <div class="form-footer-link">
+            Don't have an account? <a href="{% url 'register' %}">Create one</a>
+        </div>
     </div>
 </section>
 {% endblock %}

@@ -1,1 +1,1 @@
-"""InterviewIQ Django application."""
+"""AI Interview Coach Django application."""

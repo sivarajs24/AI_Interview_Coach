@@ -1,4 +1,4 @@
-"""Django settings for the InterviewIQ application."""
+"""Django settings for the AI Interview Coach application."""
 
 from pathlib import Path
 import os

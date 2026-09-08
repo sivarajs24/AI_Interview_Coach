@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section auth-section">
-    <div class="glass auth-card">
-        <h1>Create Account</h1>
+<section class="auth-page">
+    <div class="glass form-card">
+        <p class="eyebrow">// Create Account</p>
+        <h1 class="form-title">Join AI Interview Coach</h1>
+        <p class="form-subtitle">Start your AI-powered interview preparation journey today.</p>
+
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn">Register</button>
+            <button type="submit" class="btn" style="width:100%;margin-top:0.75rem;" id="registerBtn">Create Account →</button>
         </form>
-        <p class="auth-link">
-            Already have an account? <a href="{% url 'login' %}">Login</a>
-        </p>
+
+        <div class="form-footer-link">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </div>
     </div>
 </section>
 {% endblock %}

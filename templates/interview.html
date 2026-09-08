@@ -3,13 +3,15 @@
 
 {% block content %}
 <section class="interview-page section">
+
+    <!-- Header -->
     <div class="interview-header glass">
         <div>
-            <p class="eyebrow">Live Mock Interview</p>
+            <p class="eyebrow">// Live Mock Interview</p>
             <h1>Interview Session</h1>
             <div class="interview-meta">
                 <span class="interview-dot" aria-hidden="true"></span>
-                <span>Real-time analysis is active once you begin speaking</span>
+                <span>Real-time analysis active once you begin speaking</span>
             </div>
         </div>
         <div class="progress-wrap">
@@ -23,14 +25,17 @@
         </div>
     </div>
 
+    <!-- Layout -->
     <div class="interview-layout">
+
+        <!-- Video Panel -->
         <aside class="video-panel glass">
             <div class="webcam-wrapper">
                 <video id="webcamFeed" autoplay playsinline muted></video>
                 <span id="emotionBadge" class="emotion-badge emotion-neutral">Neutral</span>
                 <div id="recordingIndicator" class="recording-indicator hidden">
                     <span class="pulse-dot"></span>
-                    Recording
+                    REC
                 </div>
             </div>
             <div class="video-meta">
@@ -43,8 +48,28 @@
                     <strong id="emotionConfidence">0%</strong>
                 </div>
             </div>
+
+            <!-- Mini status panel -->
+            <div style="margin-top:0.75rem; padding:1rem; background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:var(--radius-md);">
+                <p style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.6rem;">System Status</p>
+                <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-muted);">Whisper STT</span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent-green);">● ACTIVE</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-muted);">DeepFace Vision</span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent-green);">● ACTIVE</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--text-muted);">RoBERTa NLP</span>
+                        <span style="font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--accent-green);">● ACTIVE</span>
+                    </div>
+                </div>
+            </div>
         </aside>
 
+        <!-- Q&A Panel -->
         <section class="qa-panel glass">
             <div class="timer-row">
                 <span>Time Remaining</span>
@@ -52,30 +77,30 @@
             </div>
 
             <article class="question-card">
-                <h2>AI Interview Question</h2>
+                <h2>// AI Interview Question</h2>
                 <p id="questionText" class="typing-target"></p>
             </article>
 
             <section class="transcript-panel">
                 <div class="panel-header">
-                    <h3>Live Transcription Preview</h3>
+                    <h3>Live Transcription</h3>
                     <span id="speechStatus" class="speech-status">Idle</span>
                 </div>
                 <p id="transcriptPreview" class="transcript-preview">
-                    Start speaking to see your answer preview in real time.
+                    Start speaking to see your answer preview in real time...
                 </p>
             </section>
 
             <section class="interim-panel">
-                <h3>Latest Analysis Snapshot</h3>
+                <h3>// Latest Analysis Snapshot</h3>
                 <div class="interim-grid">
                     <div>
                         <p>Sentiment</p>
-                        <strong id="interimSentiment">-</strong>
+                        <strong id="interimSentiment">—</strong>
                     </div>
                     <div>
                         <p>Emotion</p>
-                        <strong id="interimEmotion">-</strong>
+                        <strong id="interimEmotion">—</strong>
                     </div>
                     <div>
                         <p>Duration</p>
@@ -85,7 +110,7 @@
             </section>
 
             <section class="interview-hints">
-                <h3>High-Score Response Tips</h3>
+                <h3>// High-Score Response Tips</h3>
                 <ul>
                     <li>Use one concise structure: context, action, measurable outcome.</li>
                     <li>Keep a calm speaking pace and avoid trailing off at sentence ends.</li>
@@ -94,9 +119,16 @@
             </section>
 
             <div class="control-row">
-                <button id="startSpeakingBtn" class="btn">Start Speaking</button>
-                <button id="nextQuestionBtn" class="btn secondary" disabled>Next Question</button>
-                <button id="finishInterviewBtn" class="btn accent hidden" disabled>Finish Interview</button>
+                <button id="startSpeakingBtn" class="btn" type="button">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+                    Start Speaking
+                </button>
+                <button id="nextQuestionBtn" class="btn secondary" disabled type="button">
+                    Next Question →
+                </button>
+                <button id="finishInterviewBtn" class="btn accent hidden" disabled type="button">
+                    Finish Interview ✓
+                </button>
             </div>
         </section>
     </div>

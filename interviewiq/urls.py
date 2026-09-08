@@ -1,4 +1,4 @@
-"""URL configuration for InterviewIQ."""
+"""URL configuration for AI Interview Coach."""
 
 from django.urls import include, path
 

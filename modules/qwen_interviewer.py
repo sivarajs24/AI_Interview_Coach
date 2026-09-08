@@ -428,7 +428,7 @@ class QwenInterviewLLM:
             url = "https://openrouter.ai/api/v1/chat/completions"
             headers["Authorization"] = f"Bearer {api_key}"
             headers["HTTP-Referer"] = "https://localhost"
-            headers["X-Title"] = "InterviewIQ"
+            headers["X-Title"] = "AI Interview Coach"
             body = self._build_cloud_payload(prompt, model_name)
         else:
             return ""

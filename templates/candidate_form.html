@@ -1,32 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section auth-section">
-    <div class="glass auth-card">
-        <h1>{% if candidate %}Edit Candidate{% else %}Add Candidate{% endif %}</h1>
+<section class="auth-page">
+    <div class="glass form-card" style="max-width:560px;">
+        <p class="eyebrow">// Talent Tracking</p>
+        <h1 class="form-title">{% if candidate %}Edit Candidate{% else %}Add Candidate{% endif %}</h1>
+        <p class="form-subtitle">{% if candidate %}Update candidate information below.{% else %}Create a new candidate profile to track interview performance.{% endif %}</p>
+
         {% if error %}
-            <p class="error-message">{{ error }}</p>
+            <div style="padding:0.85rem 1.1rem;background:var(--danger-bg);border:1px solid rgba(255,68,102,0.3);border-radius:var(--radius-md);margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--danger);">
+                ⚠ {{ error }}
+            </div>
         {% endif %}
+
         <form method="post">
             {% csrf_token %}
-            <p>
-                <label for="full_name">Full Name</label><br>
-                <input id="full_name" type="text" name="full_name" value="{{ candidate.full_name|default:'' }}" required>
-            </p>
-            <p>
-                <label for="target_role">Target Role</label><br>
-                <input id="target_role" type="text" name="target_role" value="{{ candidate.target_role|default:'' }}">
-            </p>
-            <p>
-                <label for="email">Email</label><br>
-                <input id="email" type="email" name="email" value="{{ candidate.email|default:'' }}">
-            </p>
-            <p>
-                <label for="notes">Notes</label><br>
-                <textarea id="notes" name="notes" rows="4">{{ candidate.notes|default:'' }}</textarea>
-            </p>
-            <button type="submit" class="btn">Save Candidate</button>
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input id="full_name" type="text" name="full_name" value="{{ candidate.full_name|default:'' }}" required placeholder="Jane Smith">
+            </div>
+            <div class="form-group">
+                <label for="target_role">Target Role</label>
+                <input id="target_role" type="text" name="target_role" value="{{ candidate.target_role|default:'' }}" placeholder="e.g. Senior Software Engineer">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input id="email" type="email" name="email" value="{{ candidate.email|default:'' }}" placeholder="candidate@example.com">
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes" rows="4" placeholder="Interview focus areas, background notes...">{{ candidate.notes|default:'' }}</textarea>
+            </div>
+            <button type="submit" class="btn" style="width:100%;" id="saveCandidateBtn">
+                {% if candidate %}Save Changes{% else %}Create Candidate{% endif %}
+            </button>
         </form>
+
+        <div class="form-footer-link">
+            <a href="{% url 'candidate_management' %}">← Back to Candidates</a>
+        </div>
     </div>
 </section>
 {% endblock %}

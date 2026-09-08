@@ -1,1 +1,1 @@
-"""Django project package for InterviewIQ."""
+"""Django project package for AI Interview Coach."""

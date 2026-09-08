@@ -2,55 +2,59 @@
 
 {% block content %}
 <section class="section dashboard-section">
-    <div class="glass dashboard-card">
-        <div class="dashboard-header">
-            <div>
-                <p class="eyebrow">Talent Tracking</p>
-                <h1>Candidate Management</h1>
-            </div>
-            <div class="report-actions">
-                <a href="{% url 'candidate_add' %}" class="btn">Add Candidate</a>
-                <a href="{% url 'interview_page' %}" class="btn secondary">Add Interview</a>
-            </div>
+    <div class="candidate-header">
+        <div>
+            <p class="eyebrow">// Talent Tracking</p>
+            <h1>Candidate Management</h1>
         </div>
-
-        {% if candidates %}
-            <div class="session-list">
-                {% for candidate in candidates %}
-                    <article class="session-item glass">
-                        <div>
-                            <p class="session-label">Candidate</p>
-                            <h3>{{ candidate.display_name }}</h3>
-                        </div>
-                        <div>
-                            <p class="session-label">Target Role</p>
-                            <strong>{{ candidate.target_role|default:"Not specified" }}</strong>
-                        </div>
-                        <div>
-                            <p class="session-label">Sessions</p>
-                            <span>{{ candidate.sessions.count }}</span>
-                        </div>
-                        <div>
-                            <p class="session-label">Last Updated</p>
-                            <span>{{ candidate.updated_at|date:"M d, Y" }}</span>
-                        </div>
-                        <div class="report-actions compact-actions">
-                            <a href="{% url 'candidate_detail' candidate.id %}" class="btn secondary">View</a>
-                            <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary">Edit</a>
-                            <form method="post" action="{% url 'candidate_delete' candidate.id %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn danger">Delete</button>
-                            </form>
-                        </div>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <h2>No candidates yet</h2>
-                <p>Start an interview and your candidate profile will appear here.</p>
-            </div>
-        {% endif %}
+        <div class="report-actions">
+            <a href="{% url 'candidate_add' %}" class="btn" id="addCandidateBtn">+ Add Candidate</a>
+            <a href="{% url 'interview_page' %}" class="btn secondary" id="addInterviewBtn">Start Interview</a>
+        </div>
     </div>
+
+    {% if candidates %}
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+        {% for candidate in candidates %}
+        <article class="glass" style="padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;transition:all var(--transition);">
+            <div style="flex:1;min-width:160px;">
+                <p class="session-label">Candidate</p>
+                <h3 style="color:var(--text-primary);font-size:1rem;letter-spacing:0.03em;margin-top:0.2rem;">{{ candidate.display_name }}</h3>
+            </div>
+            <div style="flex:1;min-width:120px;">
+                <p class="session-label">Target Role</p>
+                <strong style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--accent-cyan);">{{ candidate.target_role|default:"Not specified" }}</strong>
+            </div>
+            <div style="flex:0 0 auto;text-align:center;">
+                <p class="session-label">Sessions</p>
+                <span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:var(--text-primary);">{{ candidate.sessions.count }}</span>
+            </div>
+            <div style="flex:0 0 auto;text-align:center;">
+                <p class="session-label">Updated</p>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-muted);">{{ candidate.updated_at|date:"M d, Y" }}</span>
+            </div>
+            <div style="display:flex;gap:0.65rem;flex-shrink:0;">
+                <a href="{% url 'candidate_detail' candidate.id %}" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">View</a>
+                <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">Edit</a>
+                <form method="post" action="{% url 'candidate_delete' candidate.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn" style="padding:0.55rem 1rem;font-size:0.75rem;background:transparent;color:var(--danger);border-color:rgba(255,68,102,0.3);box-shadow:none;"
+                        onclick="return confirm('Delete {{ candidate.display_name }}?')">Delete</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.5rem;display:block;">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+        </svg>
+        <h3>No candidates yet</h3>
+        <p>Start an interview and a candidate profile will appear here automatically.</p>
+        <a href="{% url 'candidate_add' %}" class="btn" style="margin-top:1.5rem;" id="emptyAddCandidateBtn">Add First Candidate</a>
+    </div>
+    {% endif %}
 </section>
 {% endblock %}

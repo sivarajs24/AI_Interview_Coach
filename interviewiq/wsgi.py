@@ -1,4 +1,4 @@
-"""WSGI entry point for InterviewIQ."""
+"""WSGI entry point for AI Interview Coach."""
 
 import os
 
