@@ -74,12 +74,33 @@ class InterviewController {
     }
 
     /**
+     * Helper to get CSRF token from cookies.
+     */
+    getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    /**
      * Request backend to create a fresh interview session.
      */
     async startSession() {
         const response = await fetch(this.config.startSessionUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "X-CSRFToken": this.getCookie("csrftoken")
+            },
             body: JSON.stringify({}),
         });
 
@@ -381,6 +402,9 @@ class InterviewController {
 
         const response = await fetch(this.config.uploadResponseUrl, {
             method: "POST",
+            headers: {
+                "X-CSRFToken": this.getCookie("csrftoken")
+            },
             body: formData,
         });
 
@@ -390,7 +414,42 @@ class InterviewController {
             throw new Error(message);
         }
 
+        // Poll for completion if status is processing
+        if (result.status === "processing") {
+            return await this.pollResponseStatus(this.currentQuestionIndex);
+        }
+
         return result;
+    }
+
+    /**
+     * Poll the backend until the response processing is completed.
+     */
+    async pollResponseStatus(questionIndex) {
+        const url = `/api/response_status/${this.sessionId}/${questionIndex}/`;
+        
+        while (true) {
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Poll every 2 seconds
+            
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "X-CSRFToken": this.getCookie("csrftoken")
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error("Failed to check response status.");
+            }
+            
+            const result = await response.json();
+            if (result.status === "completed") {
+                return result;
+            } else if (result.status === "error") {
+                throw new Error("An error occurred during response processing.");
+            }
+            // If still processing, loop again
+        }
     }
 
     /**
@@ -401,7 +460,10 @@ class InterviewController {
             window.UI.setLoading(true, "Generating final report...");
             const response = await fetch(this.config.finishInterviewUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": this.getCookie("csrftoken")
+                },
                 body: JSON.stringify({ session_id: this.sessionId }),
             });
 

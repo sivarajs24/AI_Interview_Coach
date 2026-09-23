@@ -12,8 +12,12 @@ import urllib.parse
 import urllib.request
 from typing import Any, Dict, List, Optional
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+try:
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    LOCAL_LLM_AVAILABLE = True
+except ImportError:
+    LOCAL_LLM_AVAILABLE = False
 
 
 class QwenInterviewLLM:
@@ -82,7 +86,7 @@ class QwenInterviewLLM:
         self.cloud_api_key = cloud_api_key or self._resolve_cloud_api_key(self.cloud_provider)
         self.cloud_model = cloud_model or os.getenv("CLOUD_LLM_MODEL", self._default_cloud_model(self.cloud_provider))
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if (LOCAL_LLM_AVAILABLE and torch.cuda.is_available()) else "cpu"
         self._tokenizer: Optional[Any] = None
         self._model: Optional[Any] = None
         self._active_model_name: Optional[str] = None
@@ -201,9 +205,11 @@ class QwenInterviewLLM:
             return False
 
         try:
-            free_bytes, _ = torch.cuda.mem_get_info()
-            free_mb = free_bytes / (1024 * 1024)
-            return free_mb < self.low_vram_mb
+            if LOCAL_LLM_AVAILABLE:
+                free_bytes, _ = torch.cuda.mem_get_info()
+                free_mb = free_bytes / (1024 * 1024)
+                return free_mb < self.low_vram_mb
+            return False
         except Exception:
             return False
 
@@ -214,7 +220,7 @@ class QwenInterviewLLM:
         self._active_model_name = None
 
         gc.collect()
-        if self.device == "cuda":
+        if self.device == "cuda" and LOCAL_LLM_AVAILABLE:
             torch.cuda.empty_cache()
 
     def _build_ollama_payload(self, prompt: str) -> Dict[str, Any]:
@@ -255,6 +261,9 @@ class QwenInterviewLLM:
             return
 
         self._cleanup_model()
+
+        if not LOCAL_LLM_AVAILABLE:
+            raise RuntimeError("Local LLM packages (torch, transformers) are not installed. Using fallback APIs.")
 
         tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         dtype = torch.float16 if self.device == "cuda" else torch.float32
@@ -469,18 +478,21 @@ class QwenInterviewLLM:
             pad_id = self._tokenizer.pad_token_id if self._tokenizer.pad_token_id is not None else eos_id
 
             started = time.perf_counter()
-            with torch.no_grad():
-                generated = self._model.generate(
-                    **tokenized,
-                    max_new_tokens=self.max_new_tokens,
-                    do_sample=True,
-                    temperature=self.temperature,
-                    top_p=0.9,
-                    repetition_penalty=1.05,
-                    max_time=self.timeout_seconds,
-                    eos_token_id=eos_id,
-                    pad_token_id=pad_id,
-                )
+            if LOCAL_LLM_AVAILABLE:
+                with torch.no_grad():
+                    generated = self._model.generate(
+                        **tokenized,
+                        max_new_tokens=self.max_new_tokens,
+                        do_sample=True,
+                        temperature=self.temperature,
+                        top_p=0.9,
+                        repetition_penalty=1.05,
+                        max_time=self.timeout_seconds,
+                        eos_token_id=eos_id,
+                        pad_token_id=pad_id,
+                    )
+            else:
+                return ""
             elapsed = time.perf_counter() - started
 
             prompt_tokens = tokenized["input_ids"].shape[-1]
@@ -538,12 +550,15 @@ class QwenInterviewLLM:
 
         with self._lock:
             prompt = self._build_rewrite_prompt(base_questions, candidate_name, target_role)
-            if not self._ensure_model():
-                cloud_rewritten = self._cloud_rewrite_questions(prompt, len(base_questions))
-                if cloud_rewritten is None:
-                    return base_questions
+            # 1. Try Cloud LLM first (Faster, smarter)
+            cloud_rewritten = self._cloud_rewrite_questions(prompt, len(base_questions))
+            if cloud_rewritten is not None:
                 rewritten = cloud_rewritten
             else:
+                # 2. Fallback to Local LLM if Cloud fails or has no API key
+                if not self._ensure_model():
+                    return base_questions
+                    
                 generated_text = self._generate_once(prompt)
                 rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
 
@@ -555,10 +570,7 @@ class QwenInterviewLLM:
                         rewritten = self._parse_numbered_questions(generated_text, len(base_questions))
 
                 if len(rewritten) != len(base_questions):
-                    cloud_rewritten = self._cloud_rewrite_questions(prompt, len(base_questions))
-                    if cloud_rewritten is None:
-                        return base_questions
-                    rewritten = cloud_rewritten
+                    return base_questions
 
             upgraded: List[Dict[str, Any]] = []
             for idx, base_item in enumerate(base_questions):

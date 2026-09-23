@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -20,7 +20,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download Report
             </button>
-            <a href="{% url 'interview_page' %}" class="btn secondary" id="retakeBtn">Retake Interview</a>
+            <a href="/interview" class="btn secondary" id="retakeBtn">Retake Interview</a>
         </div>
     </div>
 
@@ -32,19 +32,19 @@
         <div class="score-row">
             <div style="padding:0.75rem 1.25rem;background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.15);border-radius:var(--radius-md);">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.25rem;">Overall Score</span>
-                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);">{{ report.overall_score|floatformat:1 }}</strong>
+                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);">{{ report.overall_score|round(1) }}</strong>
             </div>
             <div style="padding:0.75rem 1.25rem;background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.15);border-radius:var(--radius-md);">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.25rem;">Confidence</span>
-                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);">{{ report.confidence_score|floatformat:1 }}</strong>
+                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);">{{ report.confidence_score|round(1) }}</strong>
             </div>
             <div style="padding:0.75rem 1.25rem;background:rgba(16,255,176,0.06);border:1px solid rgba(16,255,176,0.15);border-radius:var(--radius-md);">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.25rem;">Sentiment</span>
-                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-green);text-shadow:0 0 12px rgba(16,255,176,0.4);">{{ report.sentiment_score|floatformat:1 }}</strong>
+                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--accent-green);text-shadow:0 0 12px rgba(16,255,176,0.4);">{{ report.sentiment_score|round(1) }}</strong>
             </div>
             <div style="padding:0.75rem 1.25rem;background:rgba(255,68,102,0.06);border:1px solid rgba(255,68,102,0.15);border-radius:var(--radius-md);">
                 <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:0.25rem;">Stress Level</span>
-                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--danger);text-shadow:0 0 12px rgba(255,68,102,0.4);">{{ report.stress_score|floatformat:1 }}</strong>
+                <strong style="font-family:'Orbitron',sans-serif;font-size:1.4rem;color:var(--danger);text-shadow:0 0 12px rgba(255,68,102,0.4);">{{ report.stress_score|round(1) }}</strong>
             </div>
         </div>
         {% endif %}
@@ -119,9 +119,9 @@
 <script>
     window.REPORT_CONFIG = {
         sessionId: "{{ session_id }}",
-        reportApiUrl: "{% url 'get_report' session_id=session_id %}",
-        downloadUrl: "{% url 'download_report_pdf' session_id=session_id %}",
+        reportApiUrl: "/api/report/{{ session_id }}",
+        downloadUrl: "/api/report/{{ session_id }}/pdf",
     };
 </script>
-<script src="{% static 'js/report.js' %}?v=20260427-timeline-fix3"></script>
+<script src="/static/js/report.js?v=20260427-timeline-fix3"></script>
 {% endblock %}

@@ -8,8 +8,8 @@
             <h1>Candidate Management</h1>
         </div>
         <div class="report-actions">
-            <a href="{% url 'candidate_add' %}" class="btn" id="addCandidateBtn">+ Add Candidate</a>
-            <a href="{% url 'interview_page' %}" class="btn secondary" id="addInterviewBtn">Start Interview</a>
+            <a href="/candidates/add/" class="btn" id="addCandidateBtn">+ Add Candidate</a>
+            <a href="/interview" class="btn secondary" id="addInterviewBtn">Start Interview</a>
         </div>
     </div>
 
@@ -23,7 +23,7 @@
             </div>
             <div style="flex:1;min-width:120px;">
                 <p class="session-label">Target Role</p>
-                <strong style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--accent-cyan);">{{ candidate.target_role|default:"Not specified" }}</strong>
+                <strong style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--accent-cyan);">{{ candidate.target_role|default("Not specified") }}</strong>
             </div>
             <div style="flex:0 0 auto;text-align:center;">
                 <p class="session-label">Sessions</p>
@@ -31,13 +31,13 @@
             </div>
             <div style="flex:0 0 auto;text-align:center;">
                 <p class="session-label">Updated</p>
-                <span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-muted);">{{ candidate.updated_at|date:"M d, Y" }}</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--text-muted);">{{ candidate.updated_at.strftime('%b %d, %Y') if candidate.updated_at else '' }}</span>
             </div>
             <div style="display:flex;gap:0.65rem;flex-shrink:0;">
-                <a href="{% url 'candidate_detail' candidate.id %}" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">View</a>
-                <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">Edit</a>
-                <form method="post" action="{% url 'candidate_delete' candidate.id %}" style="display:inline;">
-                    {% csrf_token %}
+                <a href="/candidates/{{ candidate.id }}/" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">View</a>
+                <a href="/candidates/{{ candidate.id }}/edit/" class="btn secondary" style="padding:0.55rem 1rem;font-size:0.75rem;">Edit</a>
+                <form method="post" action="/candidates/{{ candidate.id }}/delete/" style="display:inline;">
+                    
                     <button type="submit" class="btn" style="padding:0.55rem 1rem;font-size:0.75rem;background:transparent;color:var(--danger);border-color:rgba(255,68,102,0.3);box-shadow:none;"
                         onclick="return confirm('Delete {{ candidate.display_name }}?')">Delete</button>
                 </form>
@@ -53,7 +53,7 @@
         </svg>
         <h3>No candidates yet</h3>
         <p>Start an interview and a candidate profile will appear here automatically.</p>
-        <a href="{% url 'candidate_add' %}" class="btn" style="margin-top:1.5rem;" id="emptyAddCandidateBtn">Add First Candidate</a>
+        <a href="/candidates/add/" class="btn" style="margin-top:1.5rem;" id="emptyAddCandidateBtn">Add First Candidate</a>
     </div>
     {% endif %}
 </section>

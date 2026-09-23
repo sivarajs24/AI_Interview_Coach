@@ -1,1 +1,0 @@
-"""AI Interview Coach Django application."""

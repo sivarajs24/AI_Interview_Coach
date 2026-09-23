@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+
 
 {% block content %}
 <section class="interview-page section">
@@ -138,15 +138,15 @@
 {% block scripts %}
 <script>
     window.INTERVIEW_CONFIG = {
-        startSessionUrl: "{% url 'start_session' %}",
-        uploadResponseUrl: "{% url 'upload_response' %}",
-        finishInterviewUrl: "{% url 'finish_interview' %}",
-        reportPagePrefix: "{% url 'report_page' session_id='__SESSION__' %}",
-        socketUrl: "ws{% if request.is_secure %}s{% endif %}://{{ request.get_host }}/ws/socket/",
+        startSessionUrl: "/api/start-session",
+        uploadResponseUrl: "/api/upload-response",
+        finishInterviewUrl: "/api/finish-interview",
+        reportPagePrefix: "/report/__SESSION__",
+        socketUrl: "ws://127.0.0.1:8000/ws/emotion",
         maxQuestions: 10,
         questionDurationSeconds: 120,
     };
 </script>
-<script src="{% static 'js/recorder.js' %}"></script>
-<script src="{% static 'js/interview.js' %}"></script>
+<script src="/static/js/recorder.js"></script>
+<script src="/static/js/interview.js"></script>
 {% endblock %}

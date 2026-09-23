@@ -7,6 +7,7 @@ __pycache__/
 
 # Virtual environments
 .venv/
+.venv_web_fastapi/
 venv/
 env/
 ENV/
@@ -20,6 +21,11 @@ ENV/
 instance/
 uploads/
 *.log
+db.sqlite3
+
+# Scratch / Test scripts
+scratch_*.py
+test_routes.py
 
 # Test, coverage, and cache output
 .pytest_cache/

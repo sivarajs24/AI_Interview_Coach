@@ -10,8 +10,8 @@
             <h1>{{ candidate.display_name }}</h1>
         </div>
         <div class="report-actions">
-            <a href="{% url 'candidate_edit' candidate.id %}" class="btn secondary" id="editCandidateBtn">Edit Candidate</a>
-            <a href="{% url 'candidate_management' %}" class="btn" id="backCandidatesBtn">← Candidates</a>
+            <a href="/candidates/{{ candidate.id }}/edit/" class="btn secondary" id="editCandidateBtn">Edit Candidate</a>
+            <a href="/candidates/" class="btn" id="backCandidatesBtn">← Candidates</a>
         </div>
     </div>
 
@@ -22,11 +22,11 @@
             <div style="display:flex;flex-direction:column;gap:0.85rem;margin-top:0.75rem;">
                 <div>
                     <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Target Role</span>
-                    <p style="color:var(--accent-cyan);font-weight:600;margin-top:0.2rem;font-family:'Orbitron',sans-serif;font-size:0.85rem;">{{ candidate.target_role|default:"Not specified" }}</p>
+                    <p style="color:var(--accent-cyan);font-weight:600;margin-top:0.2rem;font-family:'Orbitron',sans-serif;font-size:0.85rem;">{{ candidate.target_role|default("Not specified") }}</p>
                 </div>
                 <div>
                     <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Email</span>
-                    <p style="color:var(--text-secondary);margin-top:0.2rem;">{{ candidate.email|default:"Not provided" }}</p>
+                    <p style="color:var(--text-secondary);margin-top:0.2rem;">{{ candidate.email|default("Not provided") }}</p>
                 </div>
                 <div style="display:flex;gap:2rem;">
                     <div>
@@ -35,13 +35,13 @@
                     </div>
                     <div>
                         <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Avg Score</span>
-                        <p style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);margin-top:0.2rem;">{{ average_score|floatformat:1 }}</p>
+                        <p style="font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent-cyan);text-shadow:0 0 12px var(--glow-cyan);margin-top:0.2rem;">{{ average_score|round(1) }}</p>
                     </div>
                 </div>
                 {% if latest_report %}
                 <div>
                     <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);">Latest Summary</span>
-                    <p style="color:var(--text-secondary);margin-top:0.2rem;font-size:0.875rem;line-height:1.6;">{{ latest_report.summary|default:"Completed successfully." }}</p>
+                    <p style="color:var(--text-secondary);margin-top:0.2rem;font-size:0.875rem;line-height:1.6;">{{ latest_report.summary|default("Completed successfully.") }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -49,7 +49,7 @@
 
         <div class="profile-panel glass">
             <p class="session-label">Notes</p>
-            <p style="color:var(--text-secondary);margin-top:0.75rem;line-height:1.7;font-size:0.9rem;">{{ candidate.notes|default:"No notes added yet." }}</p>
+            <p style="color:var(--text-secondary);margin-top:0.75rem;line-height:1.7;font-size:0.9rem;">{{ candidate.notes|default("No notes added yet.") }}</p>
         </div>
     </div>
 
@@ -68,11 +68,11 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 1.5rem;background:rgba(0,0,0,0.2);border:1px solid var(--glass-border);border-radius:var(--radius-md);flex-wrap:wrap;transition:border-color var(--transition);" class="session-row">
                 <div>
                     <p class="session-label">Date</p>
-                    <strong style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-primary);">{{ session.created_at|date:"M d, Y" }}</strong>
+                    <strong style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text-primary);">{{ session.created_at.strftime('%b %d, %Y') if session.created_at else '' }}</strong>
                 </div>
                 <div>
                     <p class="session-label">Role</p>
-                    <span style="font-size:0.875rem;color:var(--text-secondary);">{{ session.target_role|default:"General" }}</span>
+                    <span style="font-size:0.875rem;color:var(--text-secondary);">{{ session.target_role|default("General") }}</span>
                 </div>
                 <div>
                     <p class="session-label">Status</p>
@@ -85,13 +85,13 @@
                 <div>
                     <p class="session-label">Score</p>
                     {% if session.report_detail %}
-                        <span style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--accent-cyan);text-shadow:0 0 8px var(--glow-cyan);">{{ session.report_detail.overall_score|floatformat:1 }}</span>
+                        <span style="font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:700;color:var(--accent-cyan);text-shadow:0 0 8px var(--glow-cyan);">{{ session.report_detail.overall_score|round(1) }}</span>
                     {% else %}
                         <span style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--text-muted);">Pending</span>
                     {% endif %}
                 </div>
                 <div>
-                    <a href="{% url 'report_page' session.session_key %}" class="btn secondary" style="padding:0.5rem 1rem;font-size:0.75rem;">View Report →</a>
+                    <a href="/report/{{ session.session_key }}" class="btn secondary" style="padding:0.5rem 1rem;font-size:0.75rem;">View Report →</a>
                 </div>
             </div>
             {% endfor %}

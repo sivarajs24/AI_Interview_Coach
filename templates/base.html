@@ -1,15 +1,15 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ title|default:"AI Interview Coach" }}</title>
+    <title>{{ title|default("AI Interview Coach") }}</title>
     <meta name="description" content="AI Interview Coach — Practice interviews with AI-powered feedback, real-time emotion analysis, and detailed performance reports." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="/static/css/style.css" />
     {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}page-default{% endblock %}">
@@ -23,27 +23,27 @@
     <canvas id="cyberParticles" aria-hidden="true"></canvas>
 
     <header class="site-header">
-        <a class="brand" href="{% url 'home' %}">
-            <img src="{% static 'assets/logo.jpg' %}" alt="AI Interview Coach logo" class="brand-logo" />
+        <a class="brand" href="/">
+            <img src="/static/assets/logo.jpg" alt="AI Interview Coach logo" class="brand-logo" />
             <span class="brand-text">AI Interview Coach</span>
         </a>
         <nav class="site-nav">
-            <a href="{% url 'home' %}#features" data-nav-link>Features</a>
-            <a href="{% url 'home' %}#how-it-works" data-nav-link>How it works</a>
+            <a href="/#features" data-nav-link>Features</a>
+            <a href="/#how-it-works" data-nav-link>How it works</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}">Dashboard</a>
-                <a href="{% url 'profile' %}">Profile</a>
-                <a href="{% url 'candidate_management' %}">Candidates</a>
-                <a href="{% url 'interview_page' %}" class="nav-cta">Start Interview</a>
+                <a href="/dashboard/">Dashboard</a>
+                <a href="/profile/">Profile</a>
+                <a href="/candidates/">Candidates</a>
+                <a href="/interview" class="nav-cta">Start Interview</a>
                 <span class="nav-user">{{ user.username }}</span>
-                <form action="{% url 'logout' %}" method="post" style="display: inline;">
-                    {% csrf_token %}
+                <form action="/accounts/logout/" method="post" style="display: inline;">
+                    
                     <button type="submit">Logout</button>
                 </form>
             {% else %}
-                <a href="{% url 'interview_page' %}" class="nav-cta">Start Interview</a>
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}">Register</a>
+                <a href="/interview" class="nav-cta">Start Interview</a>
+                <a href="/accounts/login/">Login</a>
+                <a href="/accounts/register/">Register</a>
             {% endif %}
         </nav>
     </header>

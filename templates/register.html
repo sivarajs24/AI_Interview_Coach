@@ -7,14 +7,30 @@
         <h1 class="form-title">Join AI Interview Coach</h1>
         <p class="form-subtitle">Start your AI-powered interview preparation journey today.</p>
 
+        {% if error %}
+        <div style="padding:0.85rem 1.1rem;background:var(--danger-bg);border:1px solid rgba(255,68,102,0.3);border-radius:var(--radius-md);margin-bottom:1.5rem;font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--danger);">
+            ⚠ {{ error }}
+        </div>
+        {% endif %}
+
         <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
+            <p>
+                <label for="id_username">Username:</label>
+                <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username">
+            </p>
+            <p>
+                <label for="id_email">Email:</label>
+                <input type="email" name="email" autocomplete="email" maxlength="254" id="id_email">
+            </p>
+            <p>
+                <label for="id_password">Password:</label>
+                <input type="password" name="password" autocomplete="new-password" required id="id_password">
+            </p>
             <button type="submit" class="btn" style="width:100%;margin-top:0.75rem;" id="registerBtn">Create Account →</button>
         </form>
 
         <div class="form-footer-link">
-            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            Already have an account? <a href="/accounts/login/">Sign in</a>
         </div>
     </div>
 </section>

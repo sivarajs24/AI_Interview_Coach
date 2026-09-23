@@ -9,8 +9,8 @@
                 <h1>My Profile</h1>
             </div>
             <div class="report-actions">
-                <a href="{% url 'profile_edit' %}" class="btn secondary" id="editProfileBtn">Edit Profile</a>
-                <a href="{% url 'dashboard' %}" class="btn" id="backDashboardBtn">Dashboard</a>
+                <a href="/profile/edit/" class="btn secondary" id="editProfileBtn">Edit Profile</a>
+                <a href="/dashboard/" class="btn" id="backDashboardBtn">Dashboard</a>
             </div>
         </div>
 
@@ -19,7 +19,7 @@
                 <p class="session-label">Username</p>
                 <h2>{{ user.username }}</h2>
                 <p class="session-label">Email</p>
-                <p style="color:var(--text-secondary);margin-top:0.25rem;">{{ user.email|default:"No email provided" }}</p>
+                <p style="color:var(--text-secondary);margin-top:0.25rem;">{{ user.email|default("No email provided") }}</p>
             </div>
 
             <div class="profile-panel glass">

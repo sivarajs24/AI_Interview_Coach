@@ -11,21 +11,8 @@ from typing import Any, Dict, List, Optional
 from .qwen_interviewer import QwenInterviewLLM
 
 
-@dataclass
-class InterviewSession:
-    """Represent one interview run and all data collected during it."""
-
-    session_id: str
-    candidate_name: str
-    target_role: str
-    created_at: str
-    questions: List[Dict[str, Any]]
-    responses: Dict[int, Dict[str, Any]] = field(default_factory=dict)
-    report: Optional[Dict[str, Any]] = None
-
-
 class InterviewEngine:
-    """Manage interview sessions, question sequencing, and response storage."""
+    """Manage interview sessions, question sequencing, and response storage using the database."""
 
     QUESTION_BANK: Dict[str, List[str]] = {
         "Introduction": [
@@ -97,8 +84,7 @@ class InterviewEngine:
     }
 
     def __init__(self, llm_client: Optional[QwenInterviewLLM] = None) -> None:
-        """Create an in-memory session store suitable for single-instance deployments."""
-        self.sessions: Dict[str, InterviewSession] = {}
+        """Create an stateless session engine."""
         self.llm_client = llm_client
 
     def _is_valid_sequence(self, sequence: List[Dict[str, Any]]) -> bool:
@@ -110,7 +96,7 @@ class InterviewEngine:
         categories = [str(item.get("category", "")) for item in sequence]
         return categories == expected
 
-    def _build_question_sequence(self, candidate_name: str, target_role: str) -> List[Dict[str, Any]]:
+    def build_question_sequence(self, candidate_name: str, target_role: str) -> List[Dict[str, Any]]:
         """Build a 10-question sequence with the required category distribution."""
         sequence: List[Dict[str, Any]] = []
         category_plan = [
@@ -139,85 +125,9 @@ class InterviewEngine:
 
         return sequence
 
-    def create_session(self, candidate_name: str, target_role: str) -> InterviewSession:
-        """Create and persist a new interview session."""
-        session_id = uuid.uuid4().hex
-        session = InterviewSession(
-            session_id=session_id,
-            candidate_name=candidate_name,
-            target_role=target_role,
-            created_at=datetime.now(timezone.utc).isoformat(),
-            questions=self._build_question_sequence(candidate_name=candidate_name, target_role=target_role),
-        )
-        self.sessions[session_id] = session
-        return session
-
     def active_llm_model(self) -> Optional[str]:
         """Return the active local Qwen model when LLM rewriting is enabled."""
         if self.llm_client is None:
             return None
         return self.llm_client.active_model()
 
-    def session_exists(self, session_id: str) -> bool:
-        """Return whether a session exists in storage."""
-        return session_id in self.sessions
-
-    def get_session(self, session_id: str) -> Optional[InterviewSession]:
-        """Retrieve a session by identifier."""
-        return self.sessions.get(session_id)
-
-    def get_questions(self, session_id: str) -> List[Dict[str, Any]]:
-        """Return the ordered question list for a session."""
-        session = self.get_session(session_id)
-        if session is None:
-            return []
-        return session.questions
-
-    def record_response(self, session_id: str, question_index: int, response: Dict[str, Any]) -> None:
-        """Store a per-question analysis payload for a given session."""
-        session = self.get_session(session_id)
-        if session is None:
-            return
-        session.responses[question_index] = response
-
-    def store_report(self, session_id: str, report: Dict[str, Any]) -> None:
-        """Attach a generated report payload to a session."""
-        session = self.get_session(session_id)
-        if session is None:
-            return
-        session.report = report
-
-    def get_report(self, session_id: str) -> Optional[Dict[str, Any]]:
-        """Return the report payload for a session if it exists."""
-        session = self.get_session(session_id)
-        if session is None:
-            return None
-        return session.report
-
-    def session_to_dict(self, session_id: str) -> Dict[str, Any]:
-        """Serialize session state for report generation and API responses."""
-        session = self.get_session(session_id)
-        if session is None:
-            return {}
-
-        ordered_responses: List[Dict[str, Any]] = []
-        for question in session.questions:
-            question_index = int(question["index"])
-            ordered_responses.append(
-                {
-                    "question_index": question_index,
-                    "category": question["category"],
-                    "question": question["question"],
-                    "response": session.responses.get(question_index, {}),
-                }
-            )
-
-        return {
-            "session_id": session.session_id,
-            "candidate_name": session.candidate_name,
-            "target_role": session.target_role,
-            "created_at": session.created_at,
-            "questions": session.questions,
-            "responses": ordered_responses,
-            "report": session.report,
-        }
